@@ -1,0 +1,54 @@
+    ------
+    Developer
+    ------
+    Hendrik Schreiber
+    ------
+    ------
+
+Developer
+
+    You can only build this library on OS X.
+
+    To do so, you also need:
+
+        * git
+
+        * Maven 3.0.5, {{http://maven.apache.org/}}
+
+        * Apple Command Line Tools, available via {{https://developer.apple.com/}}, or XCode, {{https://developer.apple.com/xcode/}}
+
+        * a JDK (to run Maven and get the OSX JNI headers)
+
+        * Doxygen, e.g. available via {{{http://www.macports.org}MacPorts}}
+
+    Once you have all this set up, clone the repository like this:
+
++-------------------------------+
+git clone git@github.com:hendriks73/casampledsp.git casampledsp
++-------------------------------+
+
+    Then you still need to adjust some properties in the parent <<<pom.xml>>>.
+    Or.. simply override them using <<<-Dname=value>>> notation. E.g. to point to your
+    JDK's JNI headers, add
+
++-------------------------------+
+-Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.7.0_25.jdk/Contents/Home/include/
++-------------------------------+
+
+    to your mvn call.
+    You might also need to change <<<mmacosx-version-min>>> and <<<isysroot>>>, if you
+    don't have an OS X 10.5 SDK installed.
+
+    So all in all, something like the following might work for you, depending on where
+    you installed the OS X SDK, and the OS X JDK:
+
++-------------------------------+
+mvn -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.7.0_25.jdk/Contents/Home/include/ \
+    -Dmmacosx-version-min=10.7 \
+    -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/ \
+    clean install
++-------------------------------+
+
+    Note, that the C sources in the module <<<casampledsp-x86_64>>> are expected to compile on
+    all supported architectures. In fact, the very same sources <are> compiled in the modules
+    for other architectures.

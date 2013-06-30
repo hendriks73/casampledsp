@@ -1,0 +1,82 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.tagtraum</groupId>
+        <artifactId>casampledsp-parent</artifactId>
+        <version>0.9.6-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>casampledsp-i386</artifactId>
+    <packaging>jnilib</packaging>
+    <name>CASampledSP Native Library (32bit)</name>
+    <description>i386/32bit library for CASampledSP.</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.tagtraum</groupId>
+            <artifactId>casampledsp-java</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <properties>
+        <arch>i386</arch>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <compilerProvider>generic</compilerProvider>
+
+                    <compilerStartOptions>
+                        <compilerStartOption>${darwin.compiler.startoptions}</compilerStartOption>
+                    </compilerStartOptions>
+
+                    <javahOS>darwin</javahOS>
+                    <jdkIncludePath>${darwin.headers.jni}</jdkIncludePath>
+
+                    <sources>
+                        <source>
+                            <directory>../casampledsp-x86_64/src/main/c</directory>
+                            <includes>
+                                <include>*.cpp</include>
+                            </includes>
+                        </source>
+                    </sources>
+
+                    <linkerStartOptions>
+                        <linkerStartOption>${darwin.linker.startoptions}</linkerStartOption>
+                    </linkerStartOptions>
+                </configuration>
+
+                <!-- Generate JNI header files based on a list of class name on the classpath -->
+                <!-- The generated include directory is automatically added to include path at compile phase -->
+                <!-- Ensure to have appropriate dependency jar file(s) in your pom -->
+
+                <executions>
+                    <execution>
+                        <id>javah</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <classNames>
+                                <className>com.tagtraum.casampledsp.CAAudioFileReader</className>
+                                <className>com.tagtraum.casampledsp.CACodecInputStream</className>
+                                <className>com.tagtraum.casampledsp.CAURLInputStream</className>
+                                <className>com.tagtraum.casampledsp.CAStreamInputStream</className>
+                            </classNames>
+                        </configuration>
+                        <goals>
+                            <goal>javah</goal>
+                        </goals>
+                    </execution>
+
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

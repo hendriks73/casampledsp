@@ -1,0 +1,290 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <prerequisites>
+        <maven>3.0.5</maven>
+    </prerequisites>
+    <groupId>com.tagtraum</groupId>
+    <version>0.9.6-SNAPSHOT</version>
+    <artifactId>casampledsp-parent</artifactId>
+    <packaging>pom</packaging>
+    <name>CASampledSP Parent</name>
+    <description>CoreAudio based service provider for javax.sound.sampled.</description>
+    <url>http://www.tagtraum.com/casampledsp</url>
+    <inceptionYear>2011</inceptionYear>
+
+    <licenses>
+        <license>
+            <name>LGPL 2.1</name>
+            <url>http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt</url>
+            <comments>LGPL 2.1</comments>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>tagtraum industries incorporated</name>
+        <url>http://www.tagtraum.com/</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <id>hendrik</id>
+            <name>Hendrik Schreiber</name>
+            <email>hs@tagtraum.com</email>
+            <url>http://www.tagtraum.com/</url>
+            <organization>tagtraum industries incorporated</organization>
+            <organizationUrl>http://www.tagtraum.com/</organizationUrl>
+            <roles>
+                <role>creator</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+
+    <modules>
+        <module>casampledsp-java</module>
+        <module>casampledsp-x86_64</module>
+        <module>casampledsp-i386</module>
+        <module>casampledsp</module>
+        <module>casampledsp-test</module>
+    </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+            <exclusions>
+                <!-- Hamcrest is not needed at this point -->
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.8.4</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.7</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>index</report>
+                            <report>mailing-list</report>
+                            <report>project-team</report>
+                            <report>dependencies</report>
+                            <report>issue-tracking</report>
+                            <report>license</report>
+                            <report>scm</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>javadoc</report>
+                            <report>test-javadoc</report>
+                        </reports>
+                    </reportSet>
+                    <reportSet>
+                        <id>aggregate</id>
+                        <inherited>false</inherited>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+                <configuration>
+                    <minmemory>250m</minmemory>
+                    <maxmemory>1g</maxmemory>
+                    <verbose>true</verbose>
+                    <doctitle>CASampledSP ${project.version} API</doctitle>
+                    <windowtitle>CASampledSP ${project.version} API</windowtitle>
+                    <links>
+                        <link>http://docs.oracle.com/javase/7/docs/api/</link>
+                    </links>
+                    <stylesheetfile>${basedir}/src/main/javadoc/stylesheet.css</stylesheetfile>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.12.4</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>2.5.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>native-maven-plugin</artifactId>
+                    <version>1.0-alpha-7</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>1.7</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>2.5.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>2.9</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>1.7</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>2.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.3</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <configuration>
+                            <target>
+                                <echo>=====================================================================</echo>
+                                <echo>Project.Basedir: ${project.basedir}}</echo>
+                                <echo>This doxygen call may fail for modules without doxygen configuration.</echo>
+                                <echo>=====================================================================</echo>
+                                <exec dir="${basedir}" executable="doxygen" failonerror="false">
+                                    <arg line="${basedir}/src/main/doxygen/Doxyfile" />
+                                </exec>
+                            </target>
+                        </configuration>
+                        <phase>site</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ftp</artifactId>
+            </extension>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh</artifactId>
+            </extension>
+        </extensions>
+    </build>
+
+    <distributionManagement>
+        <repository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>beatunes-repository</id>
+            <name>beaTunes Repository</name>
+            <url>sftp://www.beatunes.com/var/www/vhosts/beatunes.com/httpdocs/repo/maven2</url>
+        </repository>
+        <downloadUrl>http://www.beatunes.com/repo/maven2</downloadUrl>
+        <site>
+            <id>tagtraum-site</id>
+            <url>ftp://www.tagtraum-industries.de/casampledsp/</url>
+        </site>
+    </distributionManagement>
+
+    <scm>
+        <connection>scm:git:git://github.com/hendriks73/casampledsp.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/hendriks73/casampledsp.git</developerConnection>
+        <url>https://github.com/hendriks73/casampledsp/tree/master</url>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/hendriks73/casampledsp/issues</url>
+    </issueManagement>
+
+    <properties>
+        <arch>x86_64</arch>
+        <!-- For newer XCode versions: -->
+        <!-- <mmacosx-version-min>10.7</mmacosx-version-min> -->
+        <mmacosx-version-min>10.5</mmacosx-version-min>
+        <!-- For newer XCode versions: -->
+        <!-- <isysroot>/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/</isysroot> -->
+        <isysroot>/Developer/SDKs/MacOSX${mmacosx-version-min}.sdk</isysroot>
+        <!-- override with -D on commandline to pass additional flags, like -DDEBUG via the cflags property -->
+        <cflags />
+        <!-- Custom JDK: -->
+        <!-- <darwin.headers.jni>/Library/Java/JavaVirtualMachines/jdk1.7.0_25.jdk/Contents/Home/include/</darwin.headers.jni> -->
+        <!-- Apple JDK: -->
+        <darwin.headers.jni>/System/Library/Frameworks/JavaVM.framework/Headers</darwin.headers.jni>
+        <!-- add -DDEBUG to enable standard out debug messages -->
+        <darwin.compiler.startoptions>${cflags} -x c++ -DTARGET_OS_MAC -arch ${arch} -Wall -fmessage-length=0 -pipe -Wno-trigraphs -fpascal-strings -fasm-blocks -Os -Wunused-variable -isysroot ${isysroot} -mmacosx-version-min=${mmacosx-version-min} -Wmost -Wno-four-char-constants -Wno-unknown-pragmas</darwin.compiler.startoptions>
+        <darwin.linker.startoptions>-arch ${arch} -dynamiclib -isysroot ${isysroot} -mmacosx-version-min=${mmacosx-version-min} -lstdc++ -framework CoreFoundation -framework AudioToolbox -single_module -compatibility_version 1 -current_version 1</darwin.linker.startoptions>
+        <!-- alias, because of http://maven.apache.org/plugins/maven-site-plugin/examples/creating-content.html#Filtering -->
+        <projectversion>${project.version}</projectversion>
+    </properties>
+
+</project>

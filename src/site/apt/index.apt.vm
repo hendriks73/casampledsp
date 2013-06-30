@@ -1,0 +1,73 @@
+    ------
+    Introduction
+    ------
+    Hendrik Schreiber
+    ------
+    ------
+
+Introduction
+
+    <CASampledSP> is a free implementation of the
+    {{{http://docs.oracle.com/javase/7/docs/api/javax/sound/sampled/spi/package-summary.html}javax.sound.sampled.spi}}
+    interfaces. It is part of the {{{http://www.tagtraum.com/sampledsp.html}SampledSP}} collection of
+    <<<javax.sound.sampled>>> libraries.
+
+    Its main purpose is to decode audio from various formats at high speed. Examples for supported
+    formats are MP3 or AAC. That said, <CASampledSP> more or less supports all formats also supported by
+    Apple's Core Audio.
+
+    Because <CASampledSP> depends on native code, you need to add the provided jnilib to your <<<java.library.path>>>
+    and the provided jar to your classpath. Everything else is taken care of automatically.
+
+
+* Getting Started
+
+    The easiest way to use <CASampledSP> (other than simply using the
+    {{{http://www.beatunes.com/repo/maven2/com/tagtraum/casampledsp-java/${projectversion}/casampledsp-java-${projectversion}.jar}jar}} and
+    {{{http://www.beatunes.com/repo/maven2/com/tagtraum/casampledsp/${projectversion}/casampledsp-${projectversion}.jnilib}jnilib}}) is to start a
+    {{{http://maven.apache.org/}Maven}} project and introduce a <CASampledSP> dependency.
+
+    To do so, add something like this to the dependencies section of your pom:
+
++-------------------------------+
+<dependency>
+    <groupId>com.tagtraum</groupId>
+    <artifactId>casampledsp</artifactId>
+    <version>${projectversion}</version>
+    <type>jnilib</type>
+</dependency>
+<dependency>
+    <groupId>com.tagtraum</groupId>
+    <artifactId>casampledsp-java</artifactId>
+    <version>${projectversion}</version>
+    <type>jar</type>
+</dependency>
++-------------------------------+
+
+   If Maven can't resolve this dependency, you might also want to add the following
+   repository to the repositories section of your pom:
+
++-------------------------------+
+<repository>
+    <id>beatunes</id>
+    <name>beaTunes Repository</name>
+    <url>http://www.beatunes.com/repo/maven2</url>
+</repository>
++-------------------------------+
+
+    To use the library, simply use the <<<javax.sound.sampled>>> classes like you normally would.
+
+* Requirements
+
+    <CASampledSP> requires OS X 10.5 or later and an Intel processor. Both 32 bit and 64 bit are supported.
+
+* Alternatives
+
+    For a cross platform (OS X/Windows) 32 bit service provider based on QuickTime, check out
+    {{{http://www.tagtraum.com/qtsampledsp/}QTSampledSP}}.
+
+    For a 32/64 bit service provider implementation for Windows 7 or later, based on Microsoft's Media Foundation,
+    check out {{{http://www.tagtraum.com/mfsampledsp/}MFSampledSP}}.
+
+    For a cross platform service provider implementation featuring free formats like FLAC and OGG, take a look at
+    {{{http://www.tagtraum.com/ffsampledsp/}FFSampledSP}}.
