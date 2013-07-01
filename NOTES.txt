@@ -1,3 +1,8 @@
+0.9.7
+
+Minor fixes to pom.
+
+
 0.9.6
 
 Added support for seek.
