@@ -141,7 +141,12 @@ public class CAAudioFileReader extends AudioFileReader {
         if (fileFormat != null) {
             return fileFormat;
         }
-        final AudioFileFormat audioFileFormat = intGetAudioFormat(url.toString());
+        final AudioFileFormat audioFileFormat;
+        if (isFile(url)) {
+            audioFileFormat = intGetAudioFormat(url.toString());
+        } else {
+            audioFileFormat = getAudioFileFormat(url.openStream());
+        }
         if (audioFileFormat != null) {
             addAudioAudioFileFormatToCache(url, audioFileFormat);
         }
@@ -159,7 +164,13 @@ public class CAAudioFileReader extends AudioFileReader {
     public AudioInputStream getAudioInputStream(final URL url) throws UnsupportedAudioFileException, IOException {
         if (!nativeLibraryLoaded) throw new UnsupportedAudioFileException("Native library casampledsp not loaded.");
         final AudioFileFormat fileFormat = getAudioFileFormat(url);
-        return new CAAudioInputStream(new CAURLInputStream(url), fileFormat.getFormat(), fileFormat.getFrameLength());
+        final CANativePeerInputStream stream;
+        if (isFile(url)) {
+            stream = new CAURLInputStream(url);
+        } else {
+            stream = new CAStreamInputStream(url.openStream());
+        }
+        return new CAAudioInputStream(stream, fileFormat.getFormat(), fileFormat.getFrameLength());
     }
 
     @Override
@@ -171,6 +182,10 @@ public class CAAudioFileReader extends AudioFileReader {
 
     private native AudioFileFormat intGetAudioFormat(final String url) throws IOException;
     private native AudioFileFormat intGetAudioFormat(final byte[] buf, final int length) throws IOException;
+
+    private static boolean isFile(final URL url) {
+        return "file".equals(url.getProtocol());
+    }
 
 
 }
