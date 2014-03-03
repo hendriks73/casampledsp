@@ -68,7 +68,7 @@ public class TestCACodecInputStream {
             file.delete();
         }
         System.out.println("Read " + bytesRead + " bytes.");
-        assertEquals(537020, bytesRead);
+        assertEquals(537020, bytesRead, 3000);
     }
 
     @Test
@@ -238,7 +238,7 @@ public class TestCACodecInputStream {
             }
         }
         System.out.println("Read " + bytesRead + " bytes.");
-        assertEquals(268512, bytesRead);
+        assertEquals(268512, bytesRead, 3000);
     }
 
 
@@ -283,7 +283,7 @@ public class TestCACodecInputStream {
             }
         }
         System.out.println("Read " + bytesRead + " bytes.");
-        assertEquals(402768, bytesRead);
+        assertEquals(402768, bytesRead, 3000);
     }
 
 
@@ -328,7 +328,7 @@ public class TestCACodecInputStream {
             }
         }
         System.out.println("Read " + bytesRead + " bytes.");
-        assertEquals(537020, bytesRead);
+        assertEquals(537020, bytesRead, 3000);
     }
 
     @Test
