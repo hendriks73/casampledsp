@@ -66,7 +66,7 @@ public class CAAudioFileReader extends AudioFileReader {
     public AudioFileFormat getAudioFileFormat(final InputStream stream) throws UnsupportedAudioFileException, IOException {
         if (!nativeLibraryLoaded) throw new UnsupportedAudioFileException("Native library casampledsp not loaded.");
         if (!stream.markSupported()) throw new IOException("InputStream must support mark()");
-        final int readlimit = 1024 * 8;
+        final int readlimit = 1024 * 32;
         stream.mark(readlimit);
         try {
             final byte[] buf = new byte[readlimit];
@@ -163,12 +163,15 @@ public class CAAudioFileReader extends AudioFileReader {
     @Override
     public AudioInputStream getAudioInputStream(final URL url) throws UnsupportedAudioFileException, IOException {
         if (!nativeLibraryLoaded) throw new UnsupportedAudioFileException("Native library casampledsp not loaded.");
-        final AudioFileFormat fileFormat = getAudioFileFormat(url);
+        final AudioFileFormat fileFormat;
         final CANativePeerInputStream stream;
         if (isFile(url)) {
+            fileFormat = getAudioFileFormat(url);
             stream = new CAURLInputStream(url);
         } else {
-            stream = new CAStreamInputStream(url.openStream());
+            final InputStream rawStream = url.openStream();
+            fileFormat = getAudioFileFormat(rawStream);
+            stream = new CAStreamInputStream(rawStream);
         }
         return new CAAudioInputStream(stream, fileFormat.getFormat(), fileFormat.getFrameLength());
     }
