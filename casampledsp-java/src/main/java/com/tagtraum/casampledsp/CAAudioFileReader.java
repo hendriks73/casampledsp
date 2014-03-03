@@ -167,6 +167,7 @@ public class CAAudioFileReader extends AudioFileReader {
         final String trimmedLowercase = rawType.trim().toLowerCase();
         if ("audio/mpeg".equals(trimmedLowercase)) return toEnum("MPG3");
         if ("audio/mp4".equals(trimmedLowercase)) return toEnum("m4af");
+        if ("audio/vnd.wave".equals(trimmedLowercase)) return toEnum("WAVE");
         return 0;
     }
 
