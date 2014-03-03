@@ -63,7 +63,8 @@ static jobject create_CoreAudioAudioFormat_object(JNIEnv *env, jstring file, jin
  * @param url URL
  * @return Java CoreAudioFileFormat object
  */
-JNIEXPORT jobject JNICALL Java_com_tagtraum_casampledsp_CAAudioFileReader_intGetAudioFormat__Ljava_lang_String_2(JNIEnv *env, jobject instance, jstring url) {
+JNIEXPORT jobject JNICALL Java_com_tagtraum_casampledsp_CAAudioFileReader_intGetAudioFormat__Ljava_lang_String_2
+        (JNIEnv *env, jobject instance, jstring url) {
     
     int res;
 	AudioFileID infile = NULL;
@@ -198,7 +199,8 @@ static void CAAudioFileReader_PropertyListenerProc (
  * @param length of the byte array
  * @return Java CoreAudioFileFormat object
  */
-JNIEXPORT jobject JNICALL Java_com_tagtraum_casampledsp_CAAudioFileReader_intGetAudioFormat___3BI(JNIEnv *env, jobject instance, jbyteArray byteArray, jint length) {
+JNIEXPORT jobject JNICALL Java_com_tagtraum_casampledsp_CAAudioFileReader_intGetAudioFormat___3BII
+        (JNIEnv *env, jobject instance, jbyteArray byteArray, jint length, jint hint) {
     int res;
     AudioFileStreamID stream = NULL;
     jobject audioFormat = NULL;
@@ -212,7 +214,7 @@ JNIEXPORT jobject JNICALL Java_com_tagtraum_casampledsp_CAAudioFileReader_intGet
     jboolean bigEndian = JNI_TRUE;
 
     inBuf = env->GetByteArrayElements(byteArray, NULL);
-    res = AudioFileStreamOpen(inBuf, CAAudioFileReader_PropertyListenerProc, CAAudioFileReader_PacketsProc, 0, &stream);
+    res = AudioFileStreamOpen(inBuf, CAAudioFileReader_PropertyListenerProc, CAAudioFileReader_PacketsProc, hint, &stream);
     if (res) {
         throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to open audio stream");
         goto bail;

@@ -38,9 +38,9 @@ public class CAStreamInputStream extends CANativePeerInputStream {
     private final byte[] streamReadBuffer = new byte[4 * 1024];
     private InputStream stream;
 
-    public CAStreamInputStream(final InputStream stream) throws IOException, UnsupportedAudioFileException {
+    public CAStreamInputStream(final InputStream stream, final int hint) throws IOException, UnsupportedAudioFileException {
         this.nativeBuffer.limit(0);
-        this.pointer = open();
+        this.pointer = open(hint);
         this.stream  = stream;
     }
 
@@ -90,7 +90,7 @@ public class CAStreamInputStream extends CANativePeerInputStream {
     }
 
     private native void fillNativeBuffer(final long audioFileID, final byte[] buf, final int length) throws IOException;
-    private native long open() throws IOException;
+    private native long open(final int hint) throws IOException;
     protected native void close(final long pointer) throws IOException;
 
 

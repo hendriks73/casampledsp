@@ -32,7 +32,7 @@ public class TestCAStreamInputStream {
         int bytesRead = 0;
         CAStreamInputStream in = null;
         try {
-            in = new CAStreamInputStream(new FileInputStream(file));
+            in = new CAStreamInputStream(new FileInputStream(file), 0);
             int justRead;
             final byte[] buf = new byte[1024*8];
             while ((justRead = in.read(buf)) != -1) {
@@ -63,7 +63,7 @@ public class TestCAStreamInputStream {
         int bytesRead = 0;
         CAStreamInputStream in = null;
         try {
-            in = new CAStreamInputStream(new FileInputStream(file));
+            in = new CAStreamInputStream(new FileInputStream(file), 0);
             int justRead;
             final byte[] buf = new byte[1024];
             while ((justRead = in.read(buf)) != -1) {
@@ -99,7 +99,7 @@ public class TestCAStreamInputStream {
         out.close();
         CAStreamInputStream in = null;
         try {
-            in = new CAStreamInputStream(new BufferedInputStream(new FileInputStream(file)));
+            in = new CAStreamInputStream(new BufferedInputStream(new FileInputStream(file)), 0);
             in.read(new byte[1024]);
             fail("Expected UnsupportedAudioFileException");
         } catch (UnsupportedAudioFileException e) {
@@ -123,7 +123,7 @@ public class TestCAStreamInputStream {
         extractFile(filename, file);
         CAStreamInputStream in = null;
         try {
-            in = new CAStreamInputStream(new BufferedInputStream(new FileInputStream(file)));
+            in = new CAStreamInputStream(new BufferedInputStream(new FileInputStream(file)), 0);
             assertFalse(in.isSeekable());
             in.read(new byte[1024 * 4]);
             in.seek(0, TimeUnit.MICROSECONDS);

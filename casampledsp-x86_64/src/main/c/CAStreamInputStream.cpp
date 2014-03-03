@@ -244,7 +244,8 @@ bail:
  * @param stream Java stream instance
  * @return pointer to CAAudioStreamIO struct
  */
-JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_open(JNIEnv *env, jobject stream) {
+JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_open
+        (JNIEnv *env, jobject stream, jint hint) {
     int res = 0;
     CAAudioStreamIO *asio = new CAAudioStreamIO;
     
@@ -262,7 +263,7 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_open(J
     asio->cookieSize = 0;
     asio->frameOffset = 0;
 
-    res = AudioFileStreamOpen(asio, CAStreamInputStream_PropertyListenerProc, CAStreamInputStream_PacketsProc, 0, &asio->asid);
+    res = AudioFileStreamOpen(asio, CAStreamInputStream_PropertyListenerProc, CAStreamInputStream_PacketsProc, hint, &asio->asid);
     if (res) {
         throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to open audio stream");
         goto bail;
@@ -292,7 +293,8 @@ bail:
  * @param stream calling stream instance
  * @param asioPtr pointer to CAAudioStreamIO
  */
-JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_close(JNIEnv *env, jobject stream, jlong asioPtr) {
+JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_close
+        (JNIEnv *env, jobject stream, jlong asioPtr) {
     CAAudioStreamIO *asio = (CAAudioStreamIO*)asioPtr;
     if (asio->cookie != NULL) {
         delete asio->cookie;
