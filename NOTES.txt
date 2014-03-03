@@ -1,6 +1,8 @@
 0.9.7
 
 Minor fixes to pom.
+Support for non-file URLs.
+Allowed for deltas in tests.
 
 
 0.9.6
