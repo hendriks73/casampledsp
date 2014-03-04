@@ -1,10 +1,13 @@
 README.md
 ==========
 
-CASampledSP is an implementation of the javax.sound.sampled service provider interfaces
-based on Apple's Core Audio library.
+*CASampledSP* is an implementation of the
+[javax.sound.sampled](http://docs.oracle.com/javase/7/docs/api/javax/sound/sampled/spi/package-summary.html)
+service provider interfaces based on Apple's Core Audio library.
+It is part of the [SampledSP](http://www.tagtraum.com/sampledsp.html) collection of `javax.sound.sampled`
+libraries
 
-It's main purpose is to decode audio files or streams to signed linear pcm.
+Its main purpose is to decode audio files or streams to signed linear pcm.
 
 This library comes with absolutely no support, warranty etc. you name it.
 
@@ -46,4 +49,5 @@ for other architectures.
 Have fun,
 
 -hendrik
+
 hs@tagtraum.com
