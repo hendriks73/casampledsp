@@ -11,6 +11,8 @@ Its main purpose is to decode audio files or streams to signed linear pcm.
 
 This library comes with absolutely no support, warranty etc. you name it.
 
+Binaries and more info can be found at its (tagtraum home)[http://www.tagtraum.com/casampledsp/].
+
 
 Build
 -----
@@ -51,3 +53,4 @@ Have fun,
 -hendrik
 
 hs@tagtraum.com
+http://www.tagtraum.com/casampledsp/
