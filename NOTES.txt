@@ -1,8 +1,8 @@
 0.9.7
 
 Minor fixes to pom.
-Support for non-file URLs.
-Allowed for deltas in tests.
+Support for non-file URLs, taking content type hints into account.
+Allowed for deltas in tests, to make tests pass on Mavericks.
 
 
 0.9.6

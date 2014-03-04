@@ -32,7 +32,7 @@ don't have an OS X 10.5 SDK installed.
 
 So all in all, something like the following might work for you:
 
-mvn -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.7.0_25.jdk/Contents/Home/include/ \
+mvn -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.7.0_51.jdk/Contents/Home/include/ \
     -Dmmacosx-version-min=10.7 \
     -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/ \
     clean install

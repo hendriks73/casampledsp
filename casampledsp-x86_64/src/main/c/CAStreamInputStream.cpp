@@ -242,6 +242,7 @@ bail:
  *
  * @param env JNI env
  * @param stream Java stream instance
+ * @param hint file type hint
  * @return pointer to CAAudioStreamIO struct
  */
 JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_open

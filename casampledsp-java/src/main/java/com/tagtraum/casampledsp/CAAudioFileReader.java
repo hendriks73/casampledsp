@@ -160,6 +160,12 @@ public class CAAudioFileReader extends AudioFileReader {
         return audioFileFormat;
     }
 
+    /**
+     * Tries to guess the file type hint from the mime content-type.
+     *
+     * @param contentType content-type
+     * @return specific hint or {@code 0}, if we don't really know what it is.
+     */
     private int toFileTypeHint(final String contentType) {
         if (contentType == null || contentType.isEmpty()) return 0;
         final int semiColon = contentType.indexOf(';');
@@ -204,17 +210,29 @@ public class CAAudioFileReader extends AudioFileReader {
         return getAudioInputStream(fileToURL(file));
     }
 
-    private native AudioFileFormat intGetAudioFormat(final String url) throws IOException;
-    private native AudioFileFormat intGetAudioFormat(final byte[] buf, final int length, final int fileTypeHint) throws IOException;
-
+    /**
+     * Indicates whether the given url is pointing to a file.
+     *
+     * @param url url
+     * @return true or false
+     */
     private static boolean isFile(final URL url) {
-        return "file".equals(url.getProtocol());
+        return url != null && "file".equals(url.getProtocol());
     }
 
+    /**
+     * Converts a four char, 'MPG3'-type-enum into an {@code int}.
+     *
+     * @param s four char string
+     * @return {@code c[0] << 24 | c[1] << 16 | c[2] << 8 | c[3]}
+     */
     private static int toEnum(final String s) {
         final char[] c = s.toCharArray();
         return c[0] << 24 | c[1] << 16 | c[2] << 8 | c[3];
     }
+
+    private native AudioFileFormat intGetAudioFormat(final String url) throws IOException;
+    private native AudioFileFormat intGetAudioFormat(final byte[] buf, final int length, final int fileTypeHint) throws IOException;
 
 }
 

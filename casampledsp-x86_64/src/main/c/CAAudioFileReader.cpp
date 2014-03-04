@@ -197,6 +197,7 @@ static void CAAudioFileReader_PropertyListenerProc (
  * @param instance stream instance
  * @param byteArray first X bytes
  * @param length of the byte array
+ * @param hint file type hint
  * @return Java CoreAudioFileFormat object
  */
 JNIEXPORT jobject JNICALL Java_com_tagtraum_casampledsp_CAAudioFileReader_intGetAudioFormat___3BII

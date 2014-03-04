@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <project name="CASampledSP">
     <version position="right"/>
+    <googleAnalyticsAccountId>UA-7561371-2</googleAnalyticsAccountId>
     <bannerLeft>
         <name>CASampledSP</name>
         <href>http://www.tagtraum.com/casampledsp</href>
@@ -11,6 +12,10 @@
         <src>./images/tagtraum-banner.png</src>
     </bannerRight>
     <body>
+        <head>
+            <meta name="keyword" content="java, sound, javax.sound, audio, mir, information retrieval, feature extraction, dsp, digital signal processing, FFT, mp3" />
+            <link rel="icon" type="image/x-icon" href="../favicon.ico" />
+        </head>
         <links>
             <item name="tagtraum" href="http://www.tagtraum.com/"/>
             <item name="beaTunes" href="http://www.beatunes.com/"/>
