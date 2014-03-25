@@ -1,5 +1,8 @@
 0.9.8
 
+Moved to OS X 10.6 in order to take advantage of AudioFileReadPacketData.
+Fixed seek() in CACodecInputStream - buffers are now flushed appropriately.
+
 
 0.9.7
 

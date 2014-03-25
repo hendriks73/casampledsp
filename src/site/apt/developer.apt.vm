@@ -32,18 +32,18 @@ git clone git@github.com:hendriks73/casampledsp.git casampledsp
     JDK's JNI headers, add
 
 +-------------------------------+
--Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.7.0_25.jdk/Contents/Home/include/
+-Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/include/
 +-------------------------------+
 
     to your mvn call.
     You might also need to change <<<mmacosx-version-min>>> and <<<isysroot>>>, if you
-    don't have an OS X 10.5 SDK installed.
+    don't have an OS X 10.6 SDK installed.
 
     So all in all, something like the following might work for you, depending on where
     you installed the OS X SDK, and the OS X JDK:
 
 +-------------------------------+
-mvn -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.7.0_51.jdk/Contents/Home/include/ \
+mvn -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/include/ \
     -Dmmacosx-version-min=10.7 \
     -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/ \
     clean install

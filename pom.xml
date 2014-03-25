@@ -93,7 +93,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
+                <version>2.9.1</version>
                 <reportSets>
                     <reportSet>
                         <reports>
@@ -116,9 +116,8 @@
                     <doctitle>CASampledSP ${project.version} API</doctitle>
                     <windowtitle>CASampledSP ${project.version} API</windowtitle>
                     <links>
-                        <link>http://docs.oracle.com/javase/7/docs/api/</link>
+                        <link>http://docs.oracle.com/javase/8/docs/api/</link>
                     </links>
-                    <stylesheetfile>${basedir}/src/main/javadoc/stylesheet.css</stylesheetfile>
                 </configuration>
             </plugin>
         </plugins>
@@ -130,7 +129,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.16</version>
+                    <version>2.17</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -182,7 +181,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.4.2</version>
+                    <version>2.5</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -290,14 +289,14 @@
         <arch>x86_64</arch>
         <!-- For newer XCode versions: -->
         <!-- <mmacosx-version-min>10.7</mmacosx-version-min> -->
-        <mmacosx-version-min>10.5</mmacosx-version-min>
+        <mmacosx-version-min>10.6</mmacosx-version-min>
         <!-- For newer XCode versions: -->
         <!-- <isysroot>/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/</isysroot> -->
         <isysroot>/Developer/SDKs/MacOSX${mmacosx-version-min}.sdk</isysroot>
         <!-- override with -D on commandline to pass additional flags, like -DDEBUG via the cflags property -->
         <cflags />
         <!-- Custom JDK: -->
-        <!-- <darwin.headers.jni>/Library/Java/JavaVirtualMachines/jdk1.7.0_51.jdk/Contents/Home/include/</darwin.headers.jni> -->
+        <!-- <darwin.headers.jni>/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/include/</darwin.headers.jni> -->
         <!-- Apple JDK: -->
         <darwin.headers.jni>/System/Library/Frameworks/JavaVM.framework/Headers</darwin.headers.jni>
         <!-- add -DDEBUG to enable standard out debug messages -->
