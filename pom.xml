@@ -4,7 +4,7 @@
         <maven>3.0.5</maven>
     </prerequisites>
     <groupId>com.tagtraum</groupId>
-    <version>0.9.8</version>
+    <version>0.9.9-SNAPSHOT</version>
     <artifactId>casampledsp-parent</artifactId>
     <packaging>pom</packaging>
     <name>CASampledSP Parent</name>
@@ -270,7 +270,7 @@
         <downloadUrl>http://www.beatunes.com/repo/maven2</downloadUrl>
         <site>
             <id>tagtraum-site</id>
-            <url>ftp://www.tagtraum-industries.de/casampledsp/</url>
+            <url>sftp://ssh.strato.de/casampledsp/</url>
         </site>
     </distributionManagement>
 
