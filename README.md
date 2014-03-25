@@ -31,14 +31,14 @@ Once you have all this, you need to adjust some properties in the parent pom.xml
 Or.. simply override them using `-Dname=value` notation. E.g. to point to your
 Oracle JDK JNI headers, add e.g.
 
-    -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.7.0_51.jdk/Contents/Home/include/
+    -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/include/
 
 to your mvn call. You might also need to change `mmacosx-version-min` and `isysroot`, if you
-don't have an OS X 10.5 SDK installed.
+don't have an OS X 10.6 SDK installed.
 
 So all in all, something like the following might work for you:
 
-    mvn -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.7.0_51.jdk/Contents/Home/include/ \
+    mvn -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/include/ \
         -Dmmacosx-version-min=10.7 \
         -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/ \
         clean install
