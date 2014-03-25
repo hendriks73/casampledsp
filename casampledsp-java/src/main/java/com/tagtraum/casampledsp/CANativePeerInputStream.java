@@ -28,8 +28,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Audio stream backed by Core Audio.
- * <p/>
- * Date: 8/22/11
  *
  * @author <a href="mailto:hs@tagtraum.com">Hendrik Schreiber</a>
  */
@@ -91,12 +89,17 @@ public abstract class CANativePeerInputStream extends InputStream {
     }
 
     /**
+     * @return true or false
      * @see com.tagtraum.casampledsp.CAAudioInputStream#isSeekable()
      */
     public abstract boolean isSeekable();
 
     /**
+     * @param time time to seek
+     * @param timeUnit unit for the time to seek
      * @see com.tagtraum.casampledsp.CAAudioInputStream#seek(long, java.util.concurrent.TimeUnit)
+     * @throws java.io.IOException if something goes wrong
+     * @throws UnsupportedOperationException if not supported
      */
     public abstract void seek(final long time, final TimeUnit timeUnit) throws UnsupportedOperationException, IOException;
 

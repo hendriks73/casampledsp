@@ -19,8 +19,6 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * TestCACodecInputStream.
- * <p/>
- * Date: 8/22/11
  *
  * @author <a href="mailto:hs@tagtraum.com">Hendrik Schreiber</a>
  */

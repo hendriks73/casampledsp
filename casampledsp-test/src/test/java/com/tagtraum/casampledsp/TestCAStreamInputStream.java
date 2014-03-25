@@ -17,8 +17,6 @@ import static org.junit.Assert.*;
 
 /**
  * TestCAStreamInputStream.
- * <p/>
- * Date: 8/20/11
  *
  * @author <a href="mailto:hs@tagtraum.com">Hendrik Schreiber</a>
  */
