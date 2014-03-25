@@ -4,7 +4,7 @@
         <maven>3.0.5</maven>
     </prerequisites>
     <groupId>com.tagtraum</groupId>
-    <version>0.9.8-SNAPSHOT</version>
+    <version>0.9.8</version>
     <artifactId>casampledsp-parent</artifactId>
     <packaging>pom</packaging>
     <name>CASampledSP Parent</name>
@@ -278,7 +278,8 @@
         <connection>scm:git:git://github.com/hendriks73/casampledsp.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/hendriks73/casampledsp.git</developerConnection>
         <url>https://github.com/hendriks73/casampledsp/tree/master</url>
-    </scm>
+      <tag>casampledsp-parent-0.9.8</tag>
+  </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
