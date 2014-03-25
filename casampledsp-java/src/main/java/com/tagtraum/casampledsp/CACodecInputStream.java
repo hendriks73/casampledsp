@@ -83,8 +83,10 @@ public class CACodecInputStream extends CANativePeerInputStream {
     public void seek(final long time, final TimeUnit timeUnit) throws UnsupportedOperationException, IOException {
         wrappedStream.seek(time, timeUnit);
         nativeBuffer.limit(0);
+        reset(pointer);
     }
 
+    private native void reset(final long pointer) throws IOException;
     private native void fillNativeBuffer(final long pointer) throws IOException;
     private native long open(final AudioFormat target, final CANativePeerInputStream stream, final long pointer) throws IOException;
     @Override

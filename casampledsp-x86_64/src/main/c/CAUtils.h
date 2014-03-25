@@ -23,6 +23,7 @@
 #include <math.h>
 #include <jni.h>
 #include <AudioToolbox/AudioToolbox.h>
+#include <CoreServices/CoreServices.h>
 
 
 /*! \mainpage CASampledSP
@@ -39,6 +40,8 @@
  * This is the source documentation for the native part of the library. You can find the
  * documentation for the Java part <a href="../apidocs/index.html">here</a>.
  */
+
+#define BUFFER_SIZE 32 * 1024
 
 /**
  * Central context representing the native peer to the Java CANativePeerInputStream object.

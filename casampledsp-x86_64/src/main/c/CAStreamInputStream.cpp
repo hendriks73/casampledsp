@@ -252,7 +252,7 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_open
     
     init_ids(env, stream);
     
-	asio->srcBufferSize = 32 * 1024;
+	asio->srcBufferSize = BUFFER_SIZE;
 	asio->pos = 0;
 	asio->lastPos = 0;
 	asio->asid = NULL;

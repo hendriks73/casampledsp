@@ -57,7 +57,7 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_fillNative
     int res = 0;
     jobject byteBuffer = NULL;
     CAAudioFileIO *afio = (CAAudioFileIO*)afioPtr;
-	UInt32 outNumBytes;
+	UInt32 outNumBytes = BUFFER_SIZE; // max bytes to read
     UInt32 ioNumberDataPackets;
 
     init_ids(env, stream);
@@ -80,8 +80,7 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_fillNative
     ioNumberDataPackets = afio->numPacketsPerRead;
 
     // do the actual read from the file
-    // replace with:  AudioFileReadPacketData after we moved to OSX 10.6
-	res = AudioFileReadPackets(afio->afid, false, &outNumBytes, afio->pktDescs, 
+	res = AudioFileReadPacketData(afio->afid, false, &outNumBytes, afio->pktDescs,
                                         afio->pos, &ioNumberDataPackets, afio->srcBuffer);
 
     if (res) {
@@ -117,7 +116,7 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_open(JNIE
     CAAudioFileIO *afio = new CAAudioFileIO;
     UInt32 size;
     
-	afio->srcBufferSize = 32 * 1024;
+	afio->srcBufferSize = BUFFER_SIZE;
 	afio->pos = 0;
 	afio->afid = NULL;
     afio->pktDescs = NULL;
@@ -192,7 +191,11 @@ bail:
         }
         delete afio;
     }
-    
+
+#ifdef DEBUG
+    fprintf(stderr, "Opened: %llu\n", (jlong)afio);
+#endif
+
     return (jlong)afio;
 }
 
@@ -258,6 +261,11 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_seek(JNIEn
  * @param afioPtr pointer to CAAudioFileIO
  */
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_close(JNIEnv *env, jobject stream, jlong afioPtr) {
+
+#ifdef DEBUG
+    fprintf(stderr, "Closing: %llu\n", afioPtr);
+#endif
+
     CAAudioFileIO *afio = (CAAudioFileIO*)afioPtr;
     int res = AudioFileClose(afio->afid);
     if (res) {

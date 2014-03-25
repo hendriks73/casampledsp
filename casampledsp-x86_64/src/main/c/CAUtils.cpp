@@ -38,7 +38,9 @@ static void fourLetterCode(int err, char *cbuf) {
  */
 void throwUnsupportedAudioFileExceptionIfError(JNIEnv *env, int err, const char * message) {
     if (err) {
-        //fprintf (stderr, "UnsupportedAudioFileException: '%s' %d (%4.4s)\n", message, (int)err, (char*)&err);
+#ifdef DEBUG
+        fprintf (stderr, "UnsupportedAudioFileException: '%s' %d (%4.4s)\n", message, (int)err, (char*)&err);
+#endif
         char cbuf[4];
         fourLetterCode(err, cbuf);
         char formattedMessage [strlen(message)+8];
@@ -53,7 +55,9 @@ void throwUnsupportedAudioFileExceptionIfError(JNIEnv *env, int err, const char 
  */
 void throwIOExceptionIfError(JNIEnv *env, int err, const char *message) {
     if (err) {
-		//fprintf (stderr, "IOException: '%s' %d (%4.4s)\n", message, (int)err, (char*)&err);
+#ifdef DEBUG
+		fprintf (stderr, "IOException: '%s' %d (%4.4s)\n", message, (int)err, (char*)&err);
+#endif
         char cbuf[4];
         fourLetterCode(err, cbuf);
         char formattedMessage [strlen(message)+8];
@@ -68,7 +72,9 @@ void throwIOExceptionIfError(JNIEnv *env, int err, const char *message) {
  */
 void throwIllegalArgumentExceptionIfError(JNIEnv *env, int err, const char *message) {
     if (err) {
-		//fprintf (stderr, "IllegalArgumentException: '%s' %d (%4.4s)\n", message, (int)err, (char*)&err);
+#ifdef DEBUG
+		fprintf (stderr, "IllegalArgumentException: '%s' %d (%4.4s)\n", message, (int)err, (char*)&err);
+#endif
         char cbuf[4];
         fourLetterCode(err, cbuf);
         char formattedMessage [strlen(message)+8];

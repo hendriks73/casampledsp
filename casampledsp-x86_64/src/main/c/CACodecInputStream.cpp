@@ -367,3 +367,19 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_close(JN
     delete acio;
     
 }
+
+/**
+ * Resets the converter - necessary after seek() to flush codec buffers.
+ *
+ * @param env JNI env
+ * @param stream calling stream object
+ * @param converterPtr pointer to CAAudioConverterIO struct
+ */
+JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_reset(JNIEnv *env, jobject stream, jlong converterPtr) {
+    CAAudioConverterIO *acio = (CAAudioConverterIO*)converterPtr;
+    int res = AudioConverterReset(acio->acref);
+    if (res) {
+        throwIOExceptionIfError(env, res, "Failed to reset audio converter");
+    }
+}
+
