@@ -20,6 +20,7 @@
  */
 package com.tagtraum.casampledsp;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
@@ -40,6 +41,12 @@ import java.util.logging.Logger;
  * @author <a href="mailto:hs@tagtraum.com">Hendrik Schreiber</a>
  */
 public final class CANativeLibraryLoader {
+
+    static {
+        // because of https://bugs.openjdk.java.net/browse/JDK-8013560,
+        // we have to load the toolkit first.
+        Toolkit.getDefaultToolkit();
+    }
 
     private static final String JAR_PROTOCOL = "jar";
     private static final String FILE_PROTOCOL = "file";

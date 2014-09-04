@@ -1,3 +1,9 @@
+0.9.9
+
+Made sure, url streams are buffered and can be marked.
+Workaround hang in Toolkit.<clinit>.
+
+
 0.9.8
 
 Moved to OS X 10.6 in order to take advantage of AudioFileReadPacketData.
