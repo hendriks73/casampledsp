@@ -152,7 +152,8 @@ public class CAAudioFileReader extends AudioFileReader {
         } else {
             final URLConnection urlConnection = url.openConnection();
             final String contentType = urlConnection.getContentType();
-            audioFileFormat = getAudioFileFormat(url.openStream(), toFileTypeHint(contentType));
+            final InputStream stream = buffer(url.openStream());
+            audioFileFormat = getAudioFileFormat(stream, toFileTypeHint(contentType));
         }
         if (audioFileFormat != null) {
             addAudioAudioFileFormatToCache(url, audioFileFormat);
@@ -195,7 +196,7 @@ public class CAAudioFileReader extends AudioFileReader {
         } else {
             final URLConnection urlConnection = url.openConnection();
             final String contentType = urlConnection.getContentType();
-            final InputStream rawStream = url.openStream();
+            final InputStream rawStream = buffer(url.openStream());
             final Integer fileTypeHint = toFileTypeHint(contentType);
             fileFormat = getAudioFileFormat(rawStream, fileTypeHint);
             stream = new CAStreamInputStream(rawStream, fileTypeHint);
@@ -208,6 +209,16 @@ public class CAAudioFileReader extends AudioFileReader {
         if (!file.exists()) throw new FileNotFoundException(file.toString());
         if (!file.canRead()) throw new IOException("Can't read " + file.toString());
         return getAudioInputStream(fileToURL(file));
+    }
+
+    /**
+     * Wrap inputstream to make sure we can {@link java.io.InputStream#mark(int)}.
+     *
+     * @param in in
+     * @return buffered in
+     */
+    private InputStream buffer(final InputStream in) {
+        return !in.markSupported() ? new BufferedInputStream(in, 32 * 1024) : in;
     }
 
     /**
