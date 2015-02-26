@@ -5,6 +5,8 @@ Workaround hang in Toolkit.<clinit>.
 Fixed AIFF test.
 Fixed FileNotFound test.
 Migrated to dylib, replacing jnilib.
+Changed Maven skin to Fluido.
+Added GitHub ribbon.
 
 
 0.9.8
