@@ -128,7 +128,7 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_open(JNIE
     ca_create_url_ref(env, url, inputURLRef);
     res = AudioFileOpenURL(inputURLRef, 0x01, 0, &afio->afid); // 0x01 = read only
     if (res) {
-        if (res == fnfErr) {
+        if (res == fnfErr || res == kAudioFileUnspecifiedError) {
             throwFileNotFoundExceptionIfError(env, res, env->GetStringUTFChars(url, NULL));
         } else {
             throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to open audio file");

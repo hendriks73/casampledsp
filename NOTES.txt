@@ -3,6 +3,7 @@
 Made sure, url streams are buffered and can be marked.
 Workaround hang in Toolkit.<clinit>.
 Fixed AIFF test.
+Fixed FileNotFound test.
 
 
 0.9.8
