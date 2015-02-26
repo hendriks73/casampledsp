@@ -28,24 +28,27 @@ public class TestCAAudioFileReader {
 
     @Test
     public void testGetAudioFileFormatFileAIFF() throws IOException, UnsupportedAudioFileException {
-        // we simply use a system file here. TODO: get our own file
-        final String filename = "/System/Library/Sounds/Hero.aiff";
-        final File file = new File(filename);
-        if (!file.exists()) return;
-        final AudioFileFormat fileFormat = new CAAudioFileReader().getAudioFileFormat(file);
-        System.out.println(fileFormat);
+        final String filename = "test.aiff"; // apple lossless
+        final File file = File.createTempFile("testGetAudioFileFormatAIFFFile", filename);
+        extractFile(filename, file);
+        try {
+            final AudioFileFormat fileFormat = new CAAudioFileReader().getAudioFileFormat(file);
+            System.out.println(fileFormat);
 
-        assertEquals("aiff", fileFormat.getType().getExtension());
-        assertEquals(file.length(), fileFormat.getByteLength());
-        assertEquals(46569, fileFormat.getFrameLength());
+            assertEquals("aiff", fileFormat.getType().getExtension());
+            assertEquals(file.length(), fileFormat.getByteLength());
+            assertEquals(55477, fileFormat.getFrameLength());
 
-        final AudioFormat format = fileFormat.getFormat();
-        assertEquals(true, format.isBigEndian());
-        assertEquals(2, format.getChannels());
-        final Long duration = (Long)fileFormat.getProperty("duration");
-        assertNotNull(duration);
-        assertEquals(1056000, (long)duration);
-        assertEquals(44100f, format.getFrameRate(), 0.001f);
+            final AudioFormat format = fileFormat.getFormat();
+            assertEquals(true, format.isBigEndian());
+            assertEquals(2, format.getChannels());
+            final Long duration = (Long) fileFormat.getProperty("duration");
+            assertNotNull(duration);
+            assertEquals(1258000, (long) duration);
+            assertEquals(44100f, format.getFrameRate(), 0.001f);
+        } finally {
+            file.delete();
+        }
     }
 
     @Test

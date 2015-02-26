@@ -2,6 +2,7 @@
 
 Made sure, url streams are buffered and can be marked.
 Workaround hang in Toolkit.<clinit>.
+Fixed AIFF test.
 
 
 0.9.8
