@@ -16,7 +16,7 @@
             <groupId>com.tagtraum</groupId>
             <artifactId>casampledsp</artifactId>
             <version>${project.version}</version>
-            <type>jnilib</type>
+            <type>dylib</type>
         </dependency>
         <dependency>
             <groupId>com.tagtraum</groupId>
@@ -44,7 +44,7 @@
                                 <!-- hack to work around limitations of maven-dependency-plugin - basically not working with javadoc aggregate reports -->
                                 <!-- related to http://jira.codehaus.org/browse/MDEP-187 -->
                                 <mkdir dir="${project.build.directory}/lib" />
-                                <copy file="../casampledsp/target/lib/casampledsp.jnilib" tofile="${project.build.directory}/lib/libcasampledsp.jnilib" />
+                                <copy file="../casampledsp/target/lib/casampledsp.dylib" tofile="${project.build.directory}/lib/libcasampledsp.dylib" />
                             </target>
                         </configuration>
                         <phase>compile</phase>

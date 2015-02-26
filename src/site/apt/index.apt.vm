@@ -16,7 +16,7 @@ Introduction
     formats are MP3 or AAC. That said, <CASampledSP> more or less supports all formats also supported by
     Apple's Core Audio.
 
-    Because <CASampledSP> depends on native code, you need to add the provided jnilib to your <<<java.library.path>>>
+    Because <CASampledSP> depends on native code, you need to add the provided dylib to your <<<java.library.path>>>
     and the provided jar to your classpath. Everything else is taken care of automatically.
 
 
@@ -24,7 +24,7 @@ Introduction
 
     The easiest way to use <CASampledSP> (other than simply using the
     {{{http://www.beatunes.com/repo/maven2/com/tagtraum/casampledsp-java/${projectversion}/casampledsp-java-${projectversion}.jar}jar}} and
-    {{{http://www.beatunes.com/repo/maven2/com/tagtraum/casampledsp/${projectversion}/casampledsp-${projectversion}.jnilib}jnilib}}) is to start a
+    {{{http://www.beatunes.com/repo/maven2/com/tagtraum/casampledsp/${projectversion}/casampledsp-${projectversion}.dylib}dylib}}) is to start a
     {{{http://maven.apache.org/}Maven}} project and introduce a <CASampledSP> dependency.
 
     To do so, add something like this to the dependencies section of your pom:
@@ -34,7 +34,7 @@ Introduction
     <groupId>com.tagtraum</groupId>
     <artifactId>casampledsp</artifactId>
     <version>${projectversion}</version>
-    <type>jnilib</type>
+    <type>dylib</type>
 </dependency>
 <dependency>
     <groupId>com.tagtraum</groupId>

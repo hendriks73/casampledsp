@@ -7,7 +7,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>casampledsp-x86_64</artifactId>
-    <packaging>jnilib</packaging>
+    <packaging>dylib</packaging>
     <name>CASampledSP Native Library (64bit)</name>
     <description>x86_64/64bit library for CASampledSP.</description>
 
@@ -30,6 +30,18 @@
                 <artifactId>native-maven-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
+
+                    <!-- Generate JNI header files based on a list of class name on the classpath -->
+                    <!-- The generated include directory is automatically added to include path at compile phase -->
+                    <!-- Ensure to have appropriate dependency jar file(s) in your pom -->
+
+                    <javahClassNames>
+                        <javahClassName>com.tagtraum.casampledsp.CAAudioFileReader</javahClassName>
+                        <javahClassName>com.tagtraum.casampledsp.CACodecInputStream</javahClassName>
+                        <javahClassName>com.tagtraum.casampledsp.CAURLInputStream</javahClassName>
+                        <javahClassName>com.tagtraum.casampledsp.CAStreamInputStream</javahClassName>
+                    </javahClassNames>
+
                     <compilerProvider>generic</compilerProvider>
 
                     <compilerStartOptions>
@@ -53,28 +65,6 @@
                     </linkerStartOptions>
                 </configuration>
 
-                <!-- Generate JNI header files based on a list of class name on the classpath -->
-                <!-- The generated include directory is automatically added to include path at compile phase -->
-                <!-- Ensure to have appropriate dependency jar file(s) in your pom -->
-
-                <executions>
-                    <execution>
-                        <id>javah</id>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <classNames>
-                                <className>com.tagtraum.casampledsp.CAAudioFileReader</className>
-                                <className>com.tagtraum.casampledsp.CACodecInputStream</className>
-                                <className>com.tagtraum.casampledsp.CAURLInputStream</className>
-                                <className>com.tagtraum.casampledsp.CAStreamInputStream</className>
-                            </classNames>
-                        </configuration>
-                        <goals>
-                            <goal>javah</goal>
-                        </goals>
-                    </execution>
-
-                </executions>
             </plugin>
         </plugins>
     </build>
