@@ -2,7 +2,7 @@ README.md
 ==========
 
 *CASampledSP* is an implementation of the
-[javax.sound.sampled](http://docs.oracle.com/javase/7/docs/api/javax/sound/sampled/spi/package-summary.html)
+[javax.sound.sampled](http://docs.oracle.com/javase/8/docs/api/javax/sound/sampled/spi/package-summary.html)
 service provider interfaces based on Apple's Core Audio library, supporting all its file formats (mp3, aac, ...).
 It is part of the [SampledSP](http://www.tagtraum.com/sampledsp.html) collection of `javax.sound.sampled`
 libraries
