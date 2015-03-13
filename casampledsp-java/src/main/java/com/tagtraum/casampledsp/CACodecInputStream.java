@@ -83,7 +83,9 @@ public class CACodecInputStream extends CANativePeerInputStream {
     public void seek(final long time, final TimeUnit timeUnit) throws UnsupportedOperationException, IOException {
         wrappedStream.seek(time, timeUnit);
         nativeBuffer.limit(0);
-        reset(pointer);
+        if (isOpen()) {
+            reset(pointer);
+        }
     }
 
     private native void reset(final long pointer) throws IOException;

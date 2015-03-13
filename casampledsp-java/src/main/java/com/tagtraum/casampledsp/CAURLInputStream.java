@@ -51,7 +51,9 @@ public class CAURLInputStream extends CANativePeerInputStream {
     public synchronized void seek(final long time, final TimeUnit timeUnit) throws UnsupportedOperationException, IOException {
         if (!isSeekable()) throw new UnsupportedOperationException("Seeking is not supported for " + url);
         final long microseconds = timeUnit.toMicros(time);
-        seek(pointer, microseconds);
+        if (isOpen()) {
+            seek(pointer, microseconds);
+        }
         nativeBuffer.limit(0);
     }
 
