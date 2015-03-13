@@ -355,11 +355,14 @@ bail:
  * @param converterPtr pointer to CAAudioConverterIO struct
  */
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_close(JNIEnv *env, jobject stream, jlong converterPtr) {
+    if (converterPtr == 0) return;
     CAAudioConverterIO *acio = (CAAudioConverterIO*)converterPtr;
     env->DeleteGlobalRef(acio->sourceStream);
-    int res = AudioConverterDispose(acio->acref);
-    if (res) {
-        throwIOExceptionIfError(env, res, "Failed to close codec");
+    if (acio->acref != NULL) {
+        int res = AudioConverterDispose(acio->acref);
+        if (res) {
+            throwIOExceptionIfError(env, res, "Failed to close codec");
+        }
     }
     if (acio->pktDescs != NULL) {
         delete acio->pktDescs;
@@ -376,10 +379,15 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_close(JN
  * @param converterPtr pointer to CAAudioConverterIO struct
  */
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_reset(JNIEnv *env, jobject stream, jlong converterPtr) {
+    if (converterPtr == 0) return;
     CAAudioConverterIO *acio = (CAAudioConverterIO*)converterPtr;
-    int res = AudioConverterReset(acio->acref);
-    if (res) {
-        throwIOExceptionIfError(env, res, "Failed to reset audio converter");
+    if (acio->acref != NULL) {
+        int res = AudioConverterReset(acio->acref);
+        if (res) {
+            throwIOExceptionIfError(env, res, "Failed to reset audio converter");
+        }
+    } else {
+        throwIOExceptionIfError(env, -1, "Failed to reset audio converter as it is NULL");
     }
 }
 

@@ -296,6 +296,7 @@ bail:
  */
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_close
         (JNIEnv *env, jobject stream, jlong asioPtr) {
+    if (asioPtr == 0) return;
     CAAudioStreamIO *asio = (CAAudioStreamIO*)asioPtr;
     if (asio->cookie != NULL) {
         delete asio->cookie;

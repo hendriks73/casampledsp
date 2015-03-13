@@ -265,6 +265,7 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_close(JNIE
 #ifdef DEBUG
     fprintf(stderr, "Closing: %llu\n", afioPtr);
 #endif
+    if (afioPtr == 0) return;
 
     CAAudioFileIO *afio = (CAAudioFileIO*)afioPtr;
     int res = AudioFileClose(afio->afid);
