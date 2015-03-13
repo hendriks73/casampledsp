@@ -52,5 +52,4 @@ Have fun,
 
 -hendrik
 
-hs@tagtraum.com
 http://www.tagtraum.com/casampledsp/
