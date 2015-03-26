@@ -45,6 +45,9 @@ public final class CANativeLibraryLoader {
     static {
         // because of https://bugs.openjdk.java.net/browse/JDK-8013560,
         // we have to load the toolkit first.
+
+        // perhaps this problem was also caused by
+        // https://bugs.openjdk.java.net/browse/JDK-8068412
         Toolkit.getDefaultToolkit();
     }
 
