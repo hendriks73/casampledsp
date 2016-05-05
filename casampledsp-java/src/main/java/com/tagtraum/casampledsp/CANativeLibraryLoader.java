@@ -27,7 +27,6 @@ import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -136,7 +135,7 @@ public final class CANativeLibraryLoader {
                 throw new FileNotFoundException("Failed to get URL of " + fullyQualifiedBaseClassName);
             } else {
                 File directory = null;
-                final String path = URLDecoder.decode(url.getPath(), "UTF-8");
+                final String path = decodeURL(url.getPath());
                 if (JAR_PROTOCOL.equals(url.getProtocol())) {
                     final String jarFileName = new URL(path.substring(0, path.lastIndexOf('!'))).getPath();
                     directory = new File(jarFileName).getParentFile();
@@ -177,4 +176,74 @@ public final class CANativeLibraryLoader {
                     && fileString.endsWith(NATIVE_LIBRARY_EXTENSION);
         }
     }
+
+    /**
+     * Decode % encodings in URLs.
+     * The common {@link java.net.URLDecoder#decode(String, String)} method also converts {@code +} to {@code space},
+     * which is not what we want.
+     *
+     * @param s url
+     * @return decoded URL
+     */
+    private static String decodeURL(final String s) throws UnsupportedEncodingException {
+        boolean needToChange = false;
+        final int numChars = s.length();
+        final StringBuilder sb = new StringBuilder(numChars > 500 ? numChars / 2 : numChars);
+        int i = 0;
+
+        char c;
+        byte[] bytes = null;
+        while (i < numChars) {
+            c = s.charAt(i);
+
+            if (c == '%') {
+                /*
+                 * Starting with this instance of %, process all
+                 * consecutive substrings of the form %xy. Each
+                 * substring %xy will yield a byte. Convert all
+                 * consecutive  bytes obtained this way to whatever
+                 * character(s) they represent in the provided
+                 * encoding.
+                 */
+
+                try {
+
+                    // (numChars-i)/3 is an upper bound for the number
+                    // of remaining bytes
+                    if (bytes == null) {
+                        bytes = new byte[(numChars - i) / 3];
+                    }
+                    int pos = 0;
+
+                    while (((i+2) < numChars) && (c=='%')) {
+                        int v = Integer.parseInt(s.substring(i+1,i+3),16);
+                        if (v < 0) {
+                            throw new IllegalArgumentException("NativeLibraryLoader: Illegal hex characters in escape (%) pattern - negative value");
+                        }
+                        bytes[pos++] = (byte) v;
+                        i+= 3;
+                        if (i < numChars) {
+                            c = s.charAt(i);
+                        }
+                    }
+
+                    // A trailing, incomplete byte encoding such as
+                    // "%x" will cause an exception to be thrown
+                    if ((i < numChars) && (c=='%')) {
+                        throw new IllegalArgumentException("NativeLibraryLoader: Incomplete trailing escape (%) pattern");
+                    }
+
+                    sb.append(new String(bytes, 0, pos, "UTF-8"));
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("NativeLibraryLoader: Illegal hex characters in escape (%) pattern - " + e.getMessage());
+                }
+                needToChange = true;
+            } else {
+                sb.append(c);
+                i++;
+            }
+        }
+        return needToChange ? sb.toString() : s;
+    }
+
 }
