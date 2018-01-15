@@ -45,7 +45,7 @@ git clone git@github.com:hendriks73/casampledsp.git casampledsp
 +-------------------------------+
 mvn -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/include/ \
     -Dmmacosx-version-min=10.7 \
-    -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/ \
+    -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk \
     clean install
 +-------------------------------+
 
