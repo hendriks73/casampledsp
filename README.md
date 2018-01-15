@@ -40,7 +40,7 @@ So all in all, something like the following might work for you:
 
     mvn -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/include/ \
         -Dmmacosx-version-min=10.7 \
-        -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/ \
+        -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/ \
         clean install
 
 Note, that the C sources in the casampledsp-x86_64 module are expected to compile on
