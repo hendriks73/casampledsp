@@ -1,3 +1,10 @@
+0.9.12
+
+Ensure that seek() does not fail silently, if the stream is already closed.
+Ensure that wrapped streams are closed when transcoding.
+Fixed pom.xml to compile under High Sierra.
+
+
 0.9.11
 
 Fixed library loading issues when the classpath contains a + char.

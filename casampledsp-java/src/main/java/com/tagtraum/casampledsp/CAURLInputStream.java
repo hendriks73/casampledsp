@@ -53,6 +53,8 @@ public class CAURLInputStream extends CANativePeerInputStream {
         final long microseconds = timeUnit.toMicros(time);
         if (isOpen()) {
             seek(pointer, microseconds);
+        } else {
+            throw new IOException("Stream is already closed: " + url);
         }
         nativeBuffer.limit(0);
     }

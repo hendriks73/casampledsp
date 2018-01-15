@@ -293,13 +293,11 @@
         <mmacosx-version-min>10.6</mmacosx-version-min>
         <!-- For newer XCode versions: -->
         <!-- <isysroot>/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/</isysroot> -->
-        <isysroot>/Developer/SDKs/MacOSX${mmacosx-version-min}.sdk</isysroot>
+        <isysroot>/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/</isysroot>
         <!-- override with -D on commandline to pass additional flags, like -DDEBUG via the cflags property -->
         <cflags />
         <!-- Custom JDK: -->
-        <!-- <darwin.headers.jni>/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/include/</darwin.headers.jni> -->
-        <!-- Apple JDK: -->
-        <darwin.headers.jni>/System/Library/Frameworks/JavaVM.framework/Headers</darwin.headers.jni>
+        <darwin.headers.jni>/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/include/</darwin.headers.jni>
         <!-- add -DDEBUG to enable standard out debug messages -->
         <darwin.compiler.startoptions>${cflags} -x c++ -DTARGET_OS_MAC -arch ${arch} -Wall -fmessage-length=0 -pipe -Wno-trigraphs -fpascal-strings -fasm-blocks -Os -Wunused-variable -isysroot ${isysroot} -mmacosx-version-min=${mmacosx-version-min} -Wmost -Wno-four-char-constants -Wno-unknown-pragmas</darwin.compiler.startoptions>
         <darwin.linker.startoptions>-arch ${arch} -dynamiclib -isysroot ${isysroot} -mmacosx-version-min=${mmacosx-version-min} -lstdc++ -framework CoreFoundation -framework AudioToolbox -single_module -compatibility_version 1 -current_version 1</darwin.linker.startoptions>

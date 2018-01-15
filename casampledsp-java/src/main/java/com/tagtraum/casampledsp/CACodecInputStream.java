@@ -85,6 +85,17 @@ public class CACodecInputStream extends CANativePeerInputStream {
         nativeBuffer.limit(0);
         if (isOpen()) {
             reset(pointer);
+        } else {
+            throw new IOException("Stream is already closed");
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        try {
+            if (wrappedStream != null) wrappedStream.close();
+        } finally {
+            super.close();
         }
     }
 

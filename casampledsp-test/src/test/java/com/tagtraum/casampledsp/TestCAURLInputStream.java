@@ -237,4 +237,29 @@ public class TestCAURLInputStream {
             }
         }
     }
+
+    @Test(expected = IOException.class)
+    public void testSeekClosedFile() throws IOException, UnsupportedAudioFileException {
+        final String filename = "test.mp3";
+        final File file = File.createTempFile("testSeekClosedFile", filename);
+        extractFile(filename, file);
+        int bytesRead = 0;
+        CAURLInputStream in = null;
+        try {
+            in = new CAURLInputStream(file.toURI().toURL());
+            final byte[] buf = new byte[1024];
+            in.read(buf);
+            in.close();
+            in.seek(1, TimeUnit.SECONDS);
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            file.delete();
+        }
+    }
 }

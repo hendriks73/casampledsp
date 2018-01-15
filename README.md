@@ -47,9 +47,6 @@ Note, that the C sources in the casampledsp-x86_64 module are expected to compil
 all supported architectures. In fact, the very same sources *are* compiled in the modules
 for other architectures.
 
-
-Have fun,
-
--hendrik
+Enjoy.
 
 http://www.tagtraum.com/casampledsp/
