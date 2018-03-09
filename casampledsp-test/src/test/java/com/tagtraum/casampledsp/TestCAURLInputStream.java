@@ -11,6 +11,8 @@ import org.junit.Test;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.*;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -25,8 +27,56 @@ public class TestCAURLInputStream {
 
     @Test
     public void testReadThroughMP3File() throws IOException, UnsupportedAudioFileException {
-        final String filename = "test.mp3";
-        final File file = File.createTempFile("testReadThroughMP3File", filename);
+        readThroughFile("testReadThroughMP3File", "test.mp3");
+    }
+
+    @Test
+    public void testReadThroughVBRMP3File() throws IOException, UnsupportedAudioFileException {
+        readThroughFile("testReadThroughVBRMP3File", "test_vbr130.mp3");
+    }
+
+    @Test
+    public void testReadThroughCBRMP3File() throws IOException, UnsupportedAudioFileException {
+        readThroughFile("testReadThroughCBRMP3File", "test_cbr256.mp3");
+    }
+
+    @Test
+    public void testReadThroughM4AFile() throws IOException, UnsupportedAudioFileException {
+        readThroughFile("testReadThroughM4AFile", "test.m4a");
+    }
+
+    @Test
+    public void testReadThroughCBRM4AFile() throws IOException, UnsupportedAudioFileException {
+        readThroughFile("testReadThroughCBRM4AFile", "test_cbr.m4a");
+    }
+
+    @Test
+    public void testReadThroughVBRM4AFile() throws IOException, UnsupportedAudioFileException {
+        readThroughFile("testReadThroughVBRM4AFile", "test_vbr.m4a");
+    }
+
+    @Test
+    public void testReadThrough48kCBRM4AFile() throws IOException, UnsupportedAudioFileException {
+        readThroughFile("testReadThrough48kCBRM4AFile", "test_48k_cbr.m4a");
+    }
+
+    @Test
+    public void testReadThrough48kVBRM4AFile() throws IOException, UnsupportedAudioFileException {
+        readThroughFile("testReadThrough48kVBRM4AFile", "test_48k_vbr.m4a");
+    }
+
+    @Test
+    public void testReadThrough48kWavFile() throws IOException, UnsupportedAudioFileException {
+        readThroughFile("testReadThrough48kWavFile", "test_48k.wav");
+    }
+
+    @Test
+    public void testReadThrough48kAppleLosslessFile() throws IOException, UnsupportedAudioFileException {
+        readThroughFile("testReadThrough48kAppleLosslessFile", "test_48k_alac.m4a");
+    }
+
+    private void readThroughFile(final String prefix, final String filename) throws IOException, UnsupportedAudioFileException {
+        final File file = File.createTempFile(prefix, filename);
         extractFile(filename, file);
         int bytesRead = 0;
         CAURLInputStream in = null;
@@ -49,6 +99,38 @@ public class TestCAURLInputStream {
             file.delete();
         }
         System.out.println("Read " + bytesRead + " bytes.");
+    }
+
+    @Test
+    public void testStressOpenClose() throws IOException, UnsupportedAudioFileException {
+        final List<String> list = Arrays.asList(
+            "test.aiff", "test.m4a", "test.mp3",
+            "test_cbr.m4a", "test_cbr256.mp3",
+            "test_vbr.m4a", "test_vbr130.mp3",
+            "test_48k_alac.m4a"
+            );
+        for (final String f : list) {
+            final File file = File.createTempFile("testStressOpenClose", f);
+            extractFile(f, file);
+            try {
+                for (int i=0; i<100; i++) {
+                    CAURLInputStream in = null;
+                    try {
+                        in = new CAURLInputStream(file.toURI().toURL());
+                    } finally {
+                        if (in != null) {
+                            try {
+                                in.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            } finally {
+                file.delete();
+            }
+        }
     }
 
     @Test

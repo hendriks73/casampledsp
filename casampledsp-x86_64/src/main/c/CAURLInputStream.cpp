@@ -123,6 +123,7 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_open(JNIE
     afio->cookie = NULL;
     afio->cookieSize = 0;
     afio->frameOffset = 0;
+    afio->numPacketsPerRead = 1;
 
     // open file
     ca_create_url_ref(env, url, inputURLRef);
@@ -146,19 +147,39 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_open(JNIE
     
     // find out how many packets fit into the buffer
     if (!afio->srcFormat.mBytesPerPacket) {
-		// format is VBR, so we need to get max size per packet
+#ifdef DEBUG
+        fprintf(stderr, "VBR\n");
+#endif
+        // format is VBR, so we need to get max size per packet
 		size = sizeof(afio->srcSizePerPacket);
 		res = AudioFileGetProperty(afio->afid, kAudioFilePropertyPacketSizeUpperBound, &size, &afio->srcSizePerPacket);
         if (res) {
             throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to obtain packet size upper bound");
             goto bail;
         }
-		afio->numPacketsPerRead = afio->srcBufferSize / afio->srcSizePerPacket;
-		afio->pktDescs = new AudioStreamPacketDescription [afio->numPacketsPerRead];
+        if (afio->srcSizePerPacket != 0) {
+    		afio->numPacketsPerRead = afio->srcBufferSize / afio->srcSizePerPacket;
+        }
+#ifdef DEBUG
+        else {
+            fprintf(stderr, "VBR: srcSizePerPacket == 0!!\n");
+        }
+#endif
+		afio->pktDescs = new AudioStreamPacketDescription[afio->numPacketsPerRead];
 	}
 	else {
+#ifdef DEBUG
+        fprintf(stderr, "CBR\n");
+#endif
 		afio->srcSizePerPacket = afio->srcFormat.mBytesPerPacket;
-		afio->numPacketsPerRead = afio->srcBufferSize / afio->srcSizePerPacket;
+        if (afio->srcSizePerPacket != 0) {
+		    afio->numPacketsPerRead = afio->srcBufferSize / afio->srcSizePerPacket;
+        }
+#ifdef DEBUG
+        else {
+            fprintf(stderr, "CBR: srcSizePerPacket == 0!!\n");
+        }
+#endif
 	}
     
     // check for cookies
