@@ -7,7 +7,7 @@
 
 Developer
 
-    You can only build this library on OS X.
+    You can only build this library on macOS.
 
     To do so, you also need:
 
@@ -17,9 +17,9 @@ Developer
 
         * Apple Command Line Tools, available via {{https://developer.apple.com/}}, or XCode, {{https://developer.apple.com/xcode/}}
 
-        * a JDK (to run Maven and get the OSX JNI headers)
+        * a JDK (to run Maven and get the macOS JNI headers)
 
-        * Doxygen, e.g. available via {{{http://www.macports.org}MacPorts}}
+        * Doxygen, e.g. available via {{{http://www.macports.org}MacPorts}} or {{{https://brew.sh}}HomeBrew}
 
     Once you have all this set up, clone the repository like this:
 
@@ -40,7 +40,7 @@ git clone git@github.com:hendriks73/casampledsp.git casampledsp
     don't have an OS X 10.6 SDK installed.
 
     So all in all, something like the following might work for you, depending on where
-    you installed the OS X SDK, and the OS X JDK:
+    you installed the macOS SDK, and the macOS JDK:
 
 +-------------------------------+
 mvn -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk1.8.0.jdk/Contents/Home/include/ \

@@ -2,7 +2,7 @@ README.md
 ==========
 
 *CASampledSP* is an implementation of the
-[javax.sound.sampled](http://docs.oracle.com/javase/8/docs/api/javax/sound/sampled/spi/package-summary.html)
+[javax.sound.sampled](http://docs.oracle.com/javase/10/docs/api/javax/sound/sampled/spi/package-summary.html)
 service provider interfaces based on Apple's Core Audio library, supporting all its file formats (mp3, aac, ...).
 It is part of the [SampledSP](http://www.tagtraum.com/sampledsp.html) collection of `javax.sound.sampled`
 libraries.
@@ -17,7 +17,7 @@ Binaries and more info can be found at its [tagtraum home](http://www.tagtraum.c
 Build
 -----
 
-You can only build this library on OS X.
+You can only build this library on macOS.
 
 To do so, you also need:
 
@@ -25,7 +25,7 @@ To do so, you also need:
 - Apple Command Line Tools, available via https://developer.apple.com/,
   or XCode, https://developer.apple.com/xcode/
 - a JDK (to run Maven and get the OSX JNI headers)
-- Doxygen, available via MacPorts
+- [Doxygen](http://www.doxygen.org), available via [MacPorts](https://www.macports.org) or [HomeBrew](https://brew.sh)
 
 Once you have all this, you need to adjust some properties in the parent pom.xml.
 Or.. simply override them using `-Dname=value` notation. E.g. to point to your
