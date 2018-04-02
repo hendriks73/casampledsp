@@ -20,6 +20,8 @@
         <name>CASampledSP</name>
         <href>http://www.tagtraum.com/casampledsp</href>
         <src>./images/casampledsp-banner.png</src>
+        <width>400</width>
+        <height>120</height>
     </bannerLeft>
     <bannerRight>
         <href>http://www.tagtraum.com/</href>
