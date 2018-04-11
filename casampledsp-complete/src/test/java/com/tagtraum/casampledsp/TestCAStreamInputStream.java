@@ -28,9 +28,7 @@ public class TestCAStreamInputStream {
         final File file = File.createTempFile("testReadThroughMP3File", filename);
         extractFile(filename, file);
         int bytesRead = 0;
-        CAStreamInputStream in = null;
-        try {
-            in = new CAStreamInputStream(new FileInputStream(file), 0);
+        try (final CAStreamInputStream in = new CAStreamInputStream(new FileInputStream(file), 0)) {
             int justRead;
             final byte[] buf = new byte[1024*8];
             while ((justRead = in.read(buf)) != -1) {
@@ -38,13 +36,7 @@ public class TestCAStreamInputStream {
                 bytesRead += justRead;
             }
         } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            file.delete();
         }
         System.out.println("Read " + bytesRead + " bytes.");
     }
@@ -59,9 +51,7 @@ public class TestCAStreamInputStream {
         final int[] referenceValues = new int[]{240, 255, 230, 255, 230, 255, 232, 255, 232, 255, 247, 255, 247, 255, 246, 255, 246, 255, 235, 255, 235, 255, 250, 255, 250, 255, 13, 0, 13, 0, 15, 0, 15, 0, 39, 0, 39, 0, 87, 0, 87, 0, 90, 0, 90, 0, 31, 0, 31, 0};
 
         int bytesRead = 0;
-        CAStreamInputStream in = null;
-        try {
-            in = new CAStreamInputStream(new FileInputStream(file), 0);
+        try (final CAStreamInputStream in = new CAStreamInputStream(new FileInputStream(file), 0)) {
             int justRead;
             final byte[] buf = new byte[1024];
             while ((justRead = in.read(buf)) != -1) {
@@ -74,13 +64,7 @@ public class TestCAStreamInputStream {
                 }
             }
         } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            file.delete();
         }
         assertEquals(133632, (bytesRead / 4));
     }
@@ -95,22 +79,14 @@ public class TestCAStreamInputStream {
             out.write(random.nextInt());
         }
         out.close();
-        CAStreamInputStream in = null;
-        try {
-            in = new CAStreamInputStream(new BufferedInputStream(new FileInputStream(file)), 0);
+        try (final CAStreamInputStream in = new CAStreamInputStream(new FileInputStream(file), 0)) {
             in.read(new byte[1024]);
             fail("Expected UnsupportedAudioFileException");
         } catch (UnsupportedAudioFileException e) {
             // expected this
             assertTrue(e.toString().endsWith("(typ?)"));
         } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            file.delete();
         }
     }
 
@@ -119,9 +95,7 @@ public class TestCAStreamInputStream {
         final String filename = "test.wav";
         final File file = File.createTempFile("testNotSeekable", filename);
         extractFile(filename, file);
-        CAStreamInputStream in = null;
-        try {
-            in = new CAStreamInputStream(new BufferedInputStream(new FileInputStream(file)), 0);
+        try (final CAStreamInputStream in = new CAStreamInputStream(new FileInputStream(file), 0)) {
             assertFalse(in.isSeekable());
             in.read(new byte[1024 * 4]);
             in.seek(0, TimeUnit.MICROSECONDS);
@@ -130,43 +104,17 @@ public class TestCAStreamInputStream {
             // expected this
             e.printStackTrace();
         } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
             file.delete();
         }
     }
 
-
     private void extractFile(final String filename, final File file) throws IOException {
-        InputStream in = null;
-        OutputStream out = null;
-        try {
-            in = getClass().getResourceAsStream(filename);
-            out = new FileOutputStream(file);
+        try (final InputStream in = getClass().getResourceAsStream(filename);
+             final OutputStream out = new FileOutputStream(file)) {
             final byte[] buf = new byte[1024*64];
             int justRead;
             while ((justRead = in.read(buf)) != -1) {
                 out.write(buf, 0, justRead);
-            }
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }
         }
     }

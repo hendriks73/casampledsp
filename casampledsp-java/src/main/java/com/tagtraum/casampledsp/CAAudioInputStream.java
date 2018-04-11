@@ -51,7 +51,7 @@ public class CAAudioInputStream extends AudioInputStream {
     }
 
     private static Map<String, Object> createProperties(final Map<String, Object> p) {
-        final Map<String, Object> properties = new HashMap<String, Object>(p);
+        final Map<String, Object> properties = new HashMap<>(p);
         properties.put(CAAudioFormat.PROVIDER, CAAudioFormat.CASAMPLEDSP);
         return properties;
     }

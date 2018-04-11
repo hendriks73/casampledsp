@@ -47,7 +47,7 @@ public class CAAudioFileFormat extends AudioFileFormat {
     private static final Type MP4 = new Type("MP4", "mp4");
     private static final Type MPEG4VIDEO = new Type("MPEG-4 Video", "m4v");
 
-    private static Map<Integer, Type> TYPE_MAP = new HashMap<Integer, Type>();
+    private static Map<Integer, Type> TYPE_MAP = new HashMap<>();
 
     static {
         TYPE_MAP.put(CAAudioFormat.CAEncoding.MP1.getDataFormat(), CAAudioFileFormat.MP1);
@@ -72,7 +72,7 @@ public class CAAudioFileFormat extends AudioFileFormat {
                         determineFrameRate(dataFormat, sampleRate, frameRate), bigEndian, bitRate, vbr),
                 sampleRate * durationInMs < 0 ? AudioSystem.NOT_SPECIFIED : (int)((sampleRate * durationInMs) / 1000.0)
         );
-        this.properties = new HashMap<java.lang.String,java.lang.Object>();
+        this.properties = new HashMap<>();
         if (durationInMs > 0) this.properties.put("duration", durationInMs * 1000L);
     }
 
@@ -144,7 +144,7 @@ public class CAAudioFileFormat extends AudioFileFormat {
     public Map<String, Object> properties() {
         Map<java.lang.String,java.lang.Object> obj;
         if (properties == null) {
-            obj = new HashMap<java.lang.String,java.lang.Object>(0);
+            obj = new HashMap<>(0);
         } else {
             obj = (Map<java.lang.String,java.lang.Object>)properties.clone();
         }

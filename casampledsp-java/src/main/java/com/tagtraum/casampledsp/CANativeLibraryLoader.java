@@ -21,13 +21,11 @@
 package com.tagtraum.casampledsp;
 
 import java.awt.*;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -56,7 +54,8 @@ public final class CANativeLibraryLoader {
     private static final String NATIVE_LIBRARY_EXTENSION = System.getProperty("os.name").toLowerCase().contains("mac")
             ? ".dylib" : ".dll";
     private static final String NATIVE_LIBRARY_PREFIX = "lib";
-    private static final Set<String> LOADED = new HashSet<String>();
+    private static final Set<String> LOADED = new HashSet<>();
+    private static final String VERSION = readProjectVersion();
 
     private static Boolean caSampledSPLibraryLoaded;
 
@@ -101,6 +100,19 @@ public final class CANativeLibraryLoader {
     public static synchronized void loadLibrary(final String libName, final Class baseClass) {
         final String key = libName + "|" + baseClass.getName();
         if (LOADED.contains(key)) return;
+        final String packagedNativeLib = libName + "-" + VERSION + NATIVE_LIBRARY_EXTENSION;
+        final File extractedNativeLib = new File(System.getProperty("java.io.tmpdir") + "/" + packagedNativeLib);
+        if (!extractedNativeLib.exists()) {
+            extractResourceToFile(baseClass, "/" + packagedNativeLib, extractedNativeLib);
+        }
+        if (extractedNativeLib.exists()) {
+            try {
+                Runtime.getRuntime().load(extractedNativeLib.toString());
+                LOADED.add(key);
+            } catch (Error e) {
+                // failed to extract and load, will try other ways
+            }
+        }
         try {
             System.loadLibrary(libName);
             LOADED.add(key);
@@ -112,6 +124,30 @@ public final class CANativeLibraryLoader {
             } catch (FileNotFoundException e1) {
                 throw e;
             }
+        }
+    }
+
+    /**
+     * Extracts the given resource and writes it to the specified file.
+     * Note that this method fails silently.
+     *
+     * @param baseClass class to use as base class for the resource lookup
+     * @param sourceResource resource name
+     * @param targetFile target file
+     */
+    private static void extractResourceToFile(final Class baseClass, final String sourceResource, final File targetFile) {
+        try (final InputStream in = baseClass.getResourceAsStream(sourceResource)) {
+            if (in != null) {
+                try (final OutputStream out = new FileOutputStream(targetFile)) {
+                    final byte[] buf = new byte[1024 * 8];
+                    int justRead;
+                    while ((justRead = in.read(buf)) != -1) {
+                        out.write(buf, 0, justRead);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -150,11 +186,7 @@ public final class CANativeLibraryLoader {
                 filename = libs[0].toString();
             }
             return filename;
-        } catch (UnsupportedEncodingException e) {
-            final FileNotFoundException fnfe = new FileNotFoundException(name + ": " + e.toString());
-            fnfe.initCause(e);
-            throw fnfe;
-        } catch (MalformedURLException e) {
+        } catch (UnsupportedEncodingException | MalformedURLException e) {
             final FileNotFoundException fnfe = new FileNotFoundException(name + ": " + e.toString());
             fnfe.initCause(e);
             throw fnfe;
@@ -244,6 +276,21 @@ public final class CANativeLibraryLoader {
             }
         }
         return needToChange ? sb.toString() : s;
+    }
+
+    /**
+     * Read project version, injected by Maven.
+     *
+     * @return project version or <code>unknown</code>, if not found.
+     */
+    private static String readProjectVersion() {
+        try {
+            final Properties properties = new Properties();
+            properties.load(CANativeLibraryLoader.class.getResourceAsStream("project.properties"));
+            return properties.getProperty("version", "unknown");
+        } catch (Exception e) {
+            return "unknown";
+        }
     }
 
 }

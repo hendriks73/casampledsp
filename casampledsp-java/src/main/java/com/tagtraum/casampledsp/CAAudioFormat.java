@@ -43,7 +43,7 @@ public class CAAudioFormat extends AudioFormat {
     }
 
     private static Map<String, Object> createProperties(final int bitRate, final boolean vbr) {
-        final Map<String, Object> properties = new HashMap<String, Object>();
+        final Map<String, Object> properties = new HashMap<>();
         if (bitRate > 0) properties.put("bitrate", bitRate);
         properties.put("vbr", vbr);
         properties.put(PROVIDER, CASAMPLEDSP);
@@ -124,8 +124,8 @@ public class CAAudioFormat extends AudioFormat {
         public static CAEncoding AMR = new CAEncoding("AMR", kAudioFormatAMR);
         public static CAEncoding AC3 = new CAEncoding("AC3", kAudioFormatAC3);
 
-        private static Map<Integer, CAEncoding> DATAFORMAT_MAP = new HashMap<Integer, CAEncoding>();
-        private static Map<String, CAEncoding> NAME_MAP = new HashMap<String, CAEncoding>();
+        private static Map<Integer, CAEncoding> DATAFORMAT_MAP = new HashMap<>();
+        private static Map<String, CAEncoding> NAME_MAP = new HashMap<>();
 
         static {
             DATAFORMAT_MAP.put(MP1.getDataFormat(), MP1);
@@ -172,7 +172,7 @@ public class CAAudioFormat extends AudioFormat {
         }
 
         public static Set<CAEncoding> getSupportedEncodings() {
-            return new HashSet<CAEncoding>(DATAFORMAT_MAP.values());
+            return new HashSet<>(DATAFORMAT_MAP.values());
         }
 
         public static synchronized CAEncoding getInstance(final String name) {

@@ -40,7 +40,7 @@ public class TestCAAudioFileReader {
             assertEquals(55477, fileFormat.getFrameLength());
 
             final AudioFormat format = fileFormat.getFormat();
-            assertEquals(true, format.isBigEndian());
+            assertTrue(format.isBigEndian());
             assertEquals(2, format.getChannels());
             final Long duration = (Long) fileFormat.getProperty("duration");
             assertNotNull(duration);
@@ -160,7 +160,6 @@ public class TestCAAudioFileReader {
             out.write(random.nextInt());
         }
         out.close();
-        CAURLInputStream in = null;
         try {
             new CAAudioFileReader().getAudioFileFormat(file.toURI().toURL());
             fail("Expected UnsupportedAudioFileException");
@@ -168,14 +167,6 @@ public class TestCAAudioFileReader {
             // expected this
             e.printStackTrace();
             assertTrue(e.toString().endsWith("(typ?)"));
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 
@@ -187,30 +178,12 @@ public class TestCAAudioFileReader {
     }
 
     private void extractFile(final String filename, final File file) throws IOException {
-        InputStream in = null;
-        OutputStream out = null;
-        try {
-            in = getClass().getResourceAsStream(filename);
-            out = new FileOutputStream(file);
+        try (final InputStream in = getClass().getResourceAsStream(filename);
+             final OutputStream out = new FileOutputStream(file)) {
             final byte[] buf = new byte[1024*64];
             int justRead;
             while ((justRead = in.read(buf)) != -1) {
                 out.write(buf, 0, justRead);
-            }
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }
         }
     }

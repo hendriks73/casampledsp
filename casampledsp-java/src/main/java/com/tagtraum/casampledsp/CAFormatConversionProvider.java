@@ -94,7 +94,7 @@ public class CAFormatConversionProvider extends FormatConversionProvider {
         final CAAudioFormat.CAEncoding caEncoding = CAAudioFormat.CAEncoding.getInstance(targetEncoding.toString());
         // for now we only decode to signed linear pcm
         if (!CAAudioFormat.CAEncoding.PCM_SIGNED.equals(caEncoding)) return new AudioFormat[0];
-        final List<AudioFormat> targetFormats = new ArrayList<AudioFormat>();
+        final List<AudioFormat> targetFormats = new ArrayList<>();
 
         targetFormats.add(new AudioFormat(caEncoding, AudioSystem.NOT_SPECIFIED, 8, AudioSystem.NOT_SPECIFIED, AudioSystem.NOT_SPECIFIED, AudioSystem.NOT_SPECIFIED, true));
         targetFormats.add(new AudioFormat(caEncoding, AudioSystem.NOT_SPECIFIED, 16, AudioSystem.NOT_SPECIFIED, AudioSystem.NOT_SPECIFIED, AudioSystem.NOT_SPECIFIED, true));

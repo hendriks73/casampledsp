@@ -45,7 +45,7 @@
         <module>casampledsp-x86_64</module>
         <module>casampledsp-i386</module>
         <module>casampledsp</module>
-        <module>casampledsp-test</module>
+        <module>casampledsp-complete</module>
     </modules>
 
     <dependencies>
@@ -183,6 +183,12 @@
                     <artifactId>maven-release-plugin</artifactId>
                     <version>2.5.1</version>
                 </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -205,8 +211,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                     <compilerArgs>
                         <arg>-h</arg>
                         <arg>${project.build.directory}/native/include</arg>
@@ -225,6 +231,19 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -291,6 +310,9 @@
     </issueManagement>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        
         <arch>x86_64</arch>
         <!-- For newer XCode versions: -->
         <!-- <mmacosx-version-min>10.7</mmacosx-version-min> -->

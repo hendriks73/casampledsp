@@ -11,6 +11,12 @@
     <name>CASampledSP Java Library</name>
     <description>Java classes for CASampledSP.</description>
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
