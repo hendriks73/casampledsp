@@ -1,3 +1,9 @@
+0.9.16
+
+Moved to javac -h header generation.
+Use ${java.home} from Maven to locate JNI headers.
+
+
 0.9.15
 
 More tests for CBR/VBR files.
