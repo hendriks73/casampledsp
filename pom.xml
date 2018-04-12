@@ -304,7 +304,6 @@
         <connection>scm:git:git://github.com/hendriks73/casampledsp.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/hendriks73/casampledsp.git</developerConnection>
         <url>https://github.com/hendriks73/casampledsp/tree/master</url>
-        <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
