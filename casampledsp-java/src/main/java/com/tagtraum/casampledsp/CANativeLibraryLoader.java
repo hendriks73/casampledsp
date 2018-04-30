@@ -109,6 +109,7 @@ public final class CANativeLibraryLoader {
             try {
                 Runtime.getRuntime().load(extractedNativeLib.toString());
                 LOADED.add(key);
+                return;
             } catch (Error e) {
                 // failed to extract and load, will try other ways
             }

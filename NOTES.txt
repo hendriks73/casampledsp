@@ -1,3 +1,8 @@
+0.9.17
+
+Fixed embedded library loading.
+
+
 0.9.16
 
 Moved to javac -h header generation.
