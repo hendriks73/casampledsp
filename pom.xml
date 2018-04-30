@@ -139,7 +139,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>native-maven-plugin</artifactId>
-                    <version>1.0-alpha-8</version>
+                    <version>1.0-alpha-9</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -164,7 +164,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>2.4</version>
+                    <version>3.0.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -325,7 +325,7 @@
         <!-- override with -D on commandline to pass additional flags, like -DDEBUG via the cflags property -->
         <cflags />
         <!-- Custom JDK: -->
-        <darwin.headers.jni>${java.home}/../include/</darwin.headers.jni>
+        <darwin.headers.jni>${isysroot}System/Library/Frameworks/JavaVM.framework/Headers</darwin.headers.jni>
         <!-- add -DDEBUG to enable standard out debug messages -->
         <darwin.compiler.startoptions>${cflags} -x c++ -DTARGET_OS_MAC -arch ${arch} -Wall -fmessage-length=0 -pipe -Wno-trigraphs -fpascal-strings -fasm-blocks -Os -Wunused-variable -isysroot ${isysroot} -mmacosx-version-min=${mmacosx-version-min} -Wmost -Wno-four-char-constants -Wno-unknown-pragmas</darwin.compiler.startoptions>
         <darwin.linker.startoptions>-arch ${arch} -dynamiclib -isysroot ${isysroot} -mmacosx-version-min=${mmacosx-version-min} -lstdc++ -framework CoreFoundation -framework AudioToolbox -single_module -compatibility_version 1 -current_version 1</darwin.linker.startoptions>
