@@ -238,6 +238,30 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.1</version>
+                <configuration>
+                    <minmemory>250m</minmemory>
+                    <maxmemory>1g</maxmemory>
+                    <verbose>true</verbose>
+                    <doctitle>CASampledSP ${project.version} API</doctitle>
+                    <windowtitle>CASampledSP ${project.version} API</windowtitle>
+                    <links>
+                        <link>http://docs.oracle.com/javase/10/docs/api/</link>
+                    </links>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <archive>
