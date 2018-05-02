@@ -51,8 +51,7 @@ public final class CANativeLibraryLoader {
     private static final String JAR_PROTOCOL = "jar";
     private static final String FILE_PROTOCOL = "file";
     private static final String CLASS_FILE_EXTENSION = ".class";
-    private static final String NATIVE_LIBRARY_EXTENSION = System.getProperty("os.name").toLowerCase().contains("mac")
-            ? ".dylib" : ".dll";
+    private static final String NATIVE_LIBRARY_EXTENSION = ".dylib";
     private static final String NATIVE_LIBRARY_PREFIX = "lib";
     private static final Set<String> LOADED = new HashSet<>();
     private static final String VERSION = readProjectVersion();

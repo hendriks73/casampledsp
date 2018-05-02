@@ -33,17 +33,6 @@ Introduction
 </dependency>
 +-------------------------------+
 
-   If Maven can't resolve this dependency, you might also want to add the following
-   repository to the repositories section of your pom:
-
-+-------------------------------+
-<repository>
-    <id>beatunes</id>
-    <name>beaTunes Repository</name>
-    <url>https://www.beatunes.com/repo/maven2</url>
-</repository>
-+-------------------------------+
-
     To use the library, simply use the <<<javax.sound.sampled>>> classes like you normally would.
 
 * Requirements

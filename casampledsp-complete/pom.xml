@@ -17,11 +17,13 @@
             <artifactId>casampledsp</artifactId>
             <version>${project.version}</version>
             <type>dylib</type>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.tagtraum</groupId>
             <artifactId>casampledsp-java</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

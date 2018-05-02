@@ -1,3 +1,9 @@
+0.9.18
+
+Moved to maven central repository.
+Fixed provided dependencies.
+
+
 0.9.17
 
 Fixed embedded library loading.
