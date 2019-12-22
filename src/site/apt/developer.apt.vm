@@ -37,7 +37,7 @@ git clone git@github.com:hendriks73/casampledsp.git casampledsp
 
     to your mvn call.
     You might also need to change <<<mmacosx-version-min>>> and <<<isysroot>>>, if you
-    don't have an OS X 10.6 SDK installed.
+    don't have an OS X 10.7 SDK installed.
 
     So all in all, something like the following might work for you, depending on where
     you installed the macOS SDK, and the macOS JDK:
@@ -48,7 +48,3 @@ mvn -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk-10.jdk/Contents/H
     -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk \
     clean install
 +-------------------------------+
-
-    Note, that the C sources in the module <<<casampledsp-x86_64>>> are expected to compile on
-    all supported architectures. In fact, the very same sources <are> compiled in the modules
-    for other architectures.

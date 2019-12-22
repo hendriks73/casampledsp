@@ -5,7 +5,7 @@ README.md
 
 
 *CASampledSP* is an implementation of the
-[javax.sound.sampled](http://docs.oracle.com/javase/10/docs/api/javax/sound/sampled/spi/package-summary.html)
+[javax.sound.sampled](https://docs.oracle.com/en/java/javase/11/docs/api/java.desktop/javax/sound/sampled/spi/package-summary.html)
 service provider interfaces based on Apple's Core Audio library, supporting all its file formats (mp3, aac, ...).
 It is part of the [SampledSP](http://www.tagtraum.com/sampledsp.html) collection of `javax.sound.sampled`
 libraries.
@@ -37,7 +37,7 @@ Oracle JDK JNI headers, add e.g.
     -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk-10.jdk/Contents/Home/include/
 
 to your mvn call. You might also need to change `mmacosx-version-min` and `isysroot`, if you
-don't have an OS X 10.6 SDK installed.
+don't have an OS X 10.7 SDK installed.
 
 So all in all, something like the following might work for you:
 
@@ -45,10 +45,6 @@ So all in all, something like the following might work for you:
         -Dmmacosx-version-min=10.7 \
         -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/ \
         clean install
-
-Note, that the C sources in the casampledsp-x86_64 module are expected to compile on
-all supported architectures. In fact, the very same sources *are* compiled in the modules
-for other architectures.
 
 Enjoy.
 
