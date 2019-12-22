@@ -182,6 +182,8 @@ bail:
 JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_open(JNIEnv *env, jobject stream, jobject targetFormat, jobject sourceStream, jlong pointer) {
     int res = 0;
     CAAudioConverterIO *acio = new CAAudioConverterIO;
+    acio->sourceStream = NULL;
+
     jobject byteBuffer = NULL;
     jclass audioFormatClass = NULL;
     jmethodID sampleRateMID = NULL;
@@ -334,7 +336,10 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_open(JN
 
 bail:
     if (res) {
-        env->DeleteGlobalRef(sourceStream);
+        if (acio->sourceStream != NULL) {
+            env->DeleteGlobalRef(acio->sourceStream);
+            acio->sourceStream = NULL;
+        }
         if (acio->acref != NULL) {
             AudioConverterDispose(acio->acref);
         }
@@ -357,7 +362,10 @@ bail:
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_close(JNIEnv *env, jobject stream, jlong converterPtr) {
     if (converterPtr == 0) return;
     CAAudioConverterIO *acio = (CAAudioConverterIO*)converterPtr;
-    env->DeleteGlobalRef(acio->sourceStream);
+    if (acio->sourceStream != NULL) {
+        env->DeleteGlobalRef(acio->sourceStream);
+        acio->sourceStream = NULL;
+    }
     if (acio->acref != NULL) {
         int res = AudioConverterDispose(acio->acref);
         if (res) {
