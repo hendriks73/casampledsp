@@ -1,3 +1,8 @@
+0.9.21
+
+Fixed loading wrong native lib.
+
+
 0.9.20
 
 Fixed crash on com.tagtraum.casampledsp.CACodecInputStream.open (jni_DeleteGlobalRef).
