@@ -246,13 +246,13 @@ bail:
  * @return pointer to CAAudioStreamIO struct
  */
 JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_open
-        (JNIEnv *env, jobject stream, jint hint) {
+        (JNIEnv *env, jobject stream, jint hint, jint bufferSize) {
     int res = 0;
     CAAudioStreamIO *asio = new CAAudioStreamIO;
     
     init_ids(env, stream);
     
-	asio->srcBufferSize = BUFFER_SIZE;
+	asio->srcBufferSize = bufferSize;
 	asio->pos = 0;
 	asio->lastPos = 0;
 	asio->asid = NULL;

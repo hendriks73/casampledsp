@@ -1,3 +1,9 @@
+0.9.22
+
+Increased size of default buffer substantially.
+Introduced API to manipulate buffer size.
+
+
 0.9.21
 
 Fixed loading wrong native lib.

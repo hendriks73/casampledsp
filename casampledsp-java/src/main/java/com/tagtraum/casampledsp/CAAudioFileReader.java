@@ -180,13 +180,21 @@ public class CAAudioFileReader extends AudioFileReader {
 
     @Override
     public AudioInputStream getAudioInputStream(final InputStream stream) throws UnsupportedAudioFileException, IOException {
+        return getAudioInputStream(stream, CANativePeerInputStream.DEFAULT_BUFFER_SIZE);
+    }
+
+    public AudioInputStream getAudioInputStream(final InputStream stream, final int bufferSize) throws UnsupportedAudioFileException, IOException {
         if (!nativeLibraryLoaded) throw new UnsupportedAudioFileException("Native library casampledsp not loaded.");
         final AudioFileFormat fileFormat = getAudioFileFormat(stream);
-        return new CAAudioInputStream(new CAStreamInputStream(stream, 0), fileFormat.getFormat(), fileFormat.getFrameLength());
+        return new CAAudioInputStream(new CAStreamInputStream(stream, 0, bufferSize), fileFormat.getFormat(), fileFormat.getFrameLength());
     }
 
     @Override
     public AudioInputStream getAudioInputStream(final URL url) throws UnsupportedAudioFileException, IOException {
+        return getAudioInputStream(url, CANativePeerInputStream.DEFAULT_BUFFER_SIZE);
+    }
+
+    public AudioInputStream getAudioInputStream(final URL url, final int bufferSize) throws UnsupportedAudioFileException, IOException {
         if (!nativeLibraryLoaded) throw new UnsupportedAudioFileException("Native library casampledsp not loaded.");
         final AudioFileFormat fileFormat;
         final CANativePeerInputStream stream;
@@ -199,16 +207,20 @@ public class CAAudioFileReader extends AudioFileReader {
             final InputStream rawStream = buffer(url.openStream());
             final Integer fileTypeHint = toFileTypeHint(contentType);
             fileFormat = getAudioFileFormat(rawStream, fileTypeHint);
-            stream = new CAStreamInputStream(rawStream, fileTypeHint);
+            stream = new CAStreamInputStream(rawStream, fileTypeHint, bufferSize);
         }
         return new CAAudioInputStream(stream, fileFormat.getFormat(), fileFormat.getFrameLength());
     }
 
     @Override
     public AudioInputStream getAudioInputStream(final File file) throws UnsupportedAudioFileException, IOException {
+        return getAudioInputStream(file, CANativePeerInputStream.DEFAULT_BUFFER_SIZE);
+    }
+
+    public AudioInputStream getAudioInputStream(final File file, final int bufferSize) throws UnsupportedAudioFileException, IOException {
         if (!file.exists()) throw new FileNotFoundException(file.toString());
         if (!file.canRead()) throw new IOException("Can't read " + file.toString());
-        return getAudioInputStream(fileToURL(file));
+        return getAudioInputStream(fileToURL(file), bufferSize);
     }
 
     /**

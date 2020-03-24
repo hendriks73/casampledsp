@@ -23,6 +23,7 @@ package com.tagtraum.casampledsp;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,12 +34,28 @@ import java.util.concurrent.TimeUnit;
 public class CAURLInputStream extends CANativePeerInputStream {
 
     private final boolean seekable;
-    private URL url;
+    private final URL url;
 
+    /**
+     * Opens a stream from the given URL with the default buffer size given in {@link #DEFAULT_BUFFER_SIZE}.
+     *
+     * @param url resource to open
+     */
     public CAURLInputStream(final URL url) throws IOException, UnsupportedAudioFileException {
+        this(url, DEFAULT_BUFFER_SIZE);
+    }
+
+    /**
+     * Opens a stream from a URL with the given buffer size.
+     *
+     * @param url resource to open
+     * @param bufferSize buffer size to use when reading
+     */
+    public CAURLInputStream(final URL url, final int bufferSize) throws IOException, UnsupportedAudioFileException {
         this.url = url;
+        this.nativeBuffer = ByteBuffer.allocateDirect(bufferSize);
         this.nativeBuffer.limit(0);
-        this.pointer = open(url.toString());
+        this.pointer = open(url.toString(), bufferSize);
         this.seekable = isSeekable(pointer);
     }
 
@@ -76,7 +93,7 @@ public class CAURLInputStream extends CANativePeerInputStream {
     private native boolean isSeekable(final long pointer);
     private native void seek(final long pointer, final long microseconds) throws IOException;
     private native void fillNativeBuffer(final long audioFileID) throws IOException;
-    private native long open(final String url) throws IOException;
+    private native long open(final String url, final int bufferSize) throws IOException;
     protected native void close(final long audioFileID) throws IOException;
 
 }

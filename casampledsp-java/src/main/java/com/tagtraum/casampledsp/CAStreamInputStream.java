@@ -23,6 +23,7 @@ package com.tagtraum.casampledsp;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,11 +37,29 @@ public class CAStreamInputStream extends CANativePeerInputStream {
      * Java audio buffer. We keep this smaller to make sure that its content still fits into the native buffer.
      */
     private final byte[] streamReadBuffer = new byte[4 * 1024];
-    private InputStream stream;
+    private final InputStream stream;
 
+    /**
+     * Opens a codec stream with the default buffer size given in {@link #DEFAULT_BUFFER_SIZE}.
+     *
+     * @param hint format hint
+     * @param stream stream
+     */
     public CAStreamInputStream(final InputStream stream, final int hint) throws IOException, UnsupportedAudioFileException {
+        this(stream, hint, DEFAULT_BUFFER_SIZE);
+    }
+
+    /**
+     * Opens a stream with the given buffer size.
+     *
+     * @param hint format hint
+     * @param stream stream
+     * @param bufferSize buffer size to use when reading
+     */
+    public CAStreamInputStream(final InputStream stream, final int hint, final int bufferSize) throws IOException, UnsupportedAudioFileException {
+        this.nativeBuffer = ByteBuffer.allocateDirect(bufferSize);
         this.nativeBuffer.limit(0);
-        this.pointer = open(hint);
+        this.pointer = open(hint, bufferSize);
         this.stream  = stream;
     }
 
@@ -90,7 +109,7 @@ public class CAStreamInputStream extends CANativePeerInputStream {
     }
 
     private native void fillNativeBuffer(final long audioFileID, final byte[] buf, final int length) throws IOException;
-    private native long open(final int hint) throws IOException;
+    private native long open(final int hint, final int bufferSize) throws IOException;
     protected native void close(final long pointer) throws IOException;
 
 

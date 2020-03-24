@@ -39,6 +39,13 @@ public abstract class CANativePeerInputStream extends InputStream {
     }
 
     /**
+     * Default read buffer size. Relates to how many bytes are read from the source (e.g. disk)
+     * at a time (max). The default is 1 MB, but it can be overriden with the system property
+     * {@code CA_DEFAULT_BUFFER_SIZE}. Values are given in kilo bytes (kB), <em>not bytes</em>.
+     */
+    public static int DEFAULT_BUFFER_SIZE = 1024 * Integer.parseInt(System.getProperty("CA_DEFAULT_BUFFER_SIZE", "1024"));
+
+    /**
      * Pointer to the native peer struct.
      */
     protected long pointer;
@@ -46,7 +53,7 @@ public abstract class CANativePeerInputStream extends InputStream {
     /**
      * Native audio buffer.
      */
-    protected ByteBuffer nativeBuffer = ByteBuffer.allocateDirect(32 * 1024);
+    protected ByteBuffer nativeBuffer;
 
     protected CANativePeerInputStream() throws IOException, UnsupportedAudioFileException {
     }

@@ -24,6 +24,7 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -44,10 +45,26 @@ import java.util.concurrent.TimeUnit;
  */
 public class CACodecInputStream extends CANativePeerInputStream {
 
-    private CANativePeerInputStream wrappedStream;
+    private final CANativePeerInputStream wrappedStream;
 
+    /**
+     * Opens a codec stream with the default buffer size given in {@link #DEFAULT_BUFFER_SIZE}.
+     *
+     * @param targetFormat target format
+     * @param stream stream
+     */
     public CACodecInputStream(final AudioFormat targetFormat, final CAAudioInputStream stream) throws IOException, UnsupportedAudioFileException {
+        this(targetFormat, stream, DEFAULT_BUFFER_SIZE);
+    }
 
+    /**
+     * Opens a codec stream with the given buffer size.
+     *
+     * @param targetFormat target format
+     * @param stream stream
+     * @param bufferSize buffer size to use when reading
+     */
+    public CACodecInputStream(final AudioFormat targetFormat, final CAAudioInputStream stream, final int bufferSize) throws IOException, UnsupportedAudioFileException {
         // make sure we have a supported encoding
         AudioFormat audioFormat = targetFormat;
         if (!(targetFormat.getEncoding() instanceof CAAudioFormat.CAEncoding)) {
@@ -62,6 +79,7 @@ public class CACodecInputStream extends CANativePeerInputStream {
                     targetFormat.getFrameSize(), targetFormat.getFrameRate(), targetFormat.isBigEndian());
         }
 
+        this.nativeBuffer = ByteBuffer.allocateDirect(bufferSize);
         this.nativeBuffer.limit(0);
         this.pointer = open(audioFormat, stream.getNativePeerInputStream(), stream.getNativePeerInputStreamPointer());
         this.wrappedStream = stream.getNativePeerInputStream();

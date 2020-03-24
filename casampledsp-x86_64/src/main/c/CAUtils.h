@@ -41,8 +41,6 @@
  * documentation for the Java part <a href="../apidocs/index.html">here</a>.
  */
 
-#define BUFFER_SIZE 32 * 1024
-
 /**
  * Central context representing the native peer to the Java CANativePeerInputStream object.
  */

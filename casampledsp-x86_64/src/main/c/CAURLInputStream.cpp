@@ -57,8 +57,8 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_fillNative
     int res = 0;
     jobject byteBuffer = NULL;
     CAAudioFileIO *afio = (CAAudioFileIO*)afioPtr;
-	UInt32 outNumBytes = BUFFER_SIZE; // max bytes to read
     UInt32 ioNumberDataPackets;
+    UInt32 outNumBytes = 0;
 
     init_ids(env, stream);
 
@@ -68,13 +68,15 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_fillNative
         throwIOExceptionIfError(env, 1, "Failed to get native buffer");
         goto bail;
     }
+
+    // find out buffer's capacity
+    outNumBytes = env->GetDirectBufferCapacity(byteBuffer);
     // get pointer to our java managed bytebuffer
     afio->srcBuffer = (char *)env->GetDirectBufferAddress(byteBuffer);
     if (afio->srcBuffer == NULL) {
         throwIOExceptionIfError(env, 1, "Failed to get address for native buffer");
         goto bail;
     }
-
 
     // figure out how much to read
     ioNumberDataPackets = afio->numPacketsPerRead;
@@ -110,13 +112,13 @@ bail:
  * @param url URL to open
  * @return pointer to the underlying CAAudioFileIO struct
  */
-JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_open(JNIEnv *env, jobject stream, jstring url) {
+JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_open(JNIEnv *env, jobject stream, jstring url, jint bufferSize) {
     int res = 0;
 	CFURLRef inputURLRef;
     CAAudioFileIO *afio = new CAAudioFileIO;
     UInt32 size;
     
-	afio->srcBufferSize = BUFFER_SIZE;
+	afio->srcBufferSize = bufferSize;
 	afio->pos = 0;
 	afio->afid = NULL;
     afio->pktDescs = NULL;
@@ -176,7 +178,7 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_open(JNIE
 		    afio->numPacketsPerRead = afio->srcBufferSize / afio->srcSizePerPacket;
         }
 #ifdef DEBUG
-        else {
+        else {  
             fprintf(stderr, "CBR: srcSizePerPacket == 0!!\n");
         }
 #endif
