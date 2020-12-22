@@ -54,6 +54,7 @@ public class CAAudioFileReader extends AudioFileReader {
             return size() > MAX_ENTRIES;
         }
     });
+    private int connectTimeout = 5000;
 
     private static void addAudioAudioFileFormatToCache(final URL url, final AudioFileFormat audioFileFormat) {
         cache.put(url, audioFileFormat);
@@ -61,6 +62,24 @@ public class CAAudioFileReader extends AudioFileReader {
 
     private static AudioFileFormat getAudioFileFormatFromCache(final URL url) {
         return cache.get(url);
+    }
+
+    /**
+     * In case a resource is located on the network, use the given connection timeout (in ms).
+     *
+     * @param connectTimeout timeout
+     */
+    public void setConnectTimeout(final int connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
+
+    /**
+     * Return the connnection timeout for network resources.
+     *
+     * @return timeout in ms
+     */
+    public int getConnectTimeout() {
+        return connectTimeout;
     }
 
     @Override
@@ -95,7 +114,7 @@ public class CAAudioFileReader extends AudioFileReader {
      *
      * @param file file
      * @return correctly encoded URL
-     * @throws MalformedURLException
+     * @throws MalformedURLException if the URL is malformed
      */
     static URL fileToURL(final File file) throws MalformedURLException {
         /*
@@ -151,6 +170,7 @@ public class CAAudioFileReader extends AudioFileReader {
             audioFileFormat = intGetAudioFormat(url.toString());
         } else {
             final URLConnection urlConnection = url.openConnection();
+            urlConnection.setConnectTimeout(connectTimeout);
             final String contentType = urlConnection.getContentType();
             final InputStream stream = buffer(url.openStream());
             audioFileFormat = getAudioFileFormat(stream, toFileTypeHint(contentType));
@@ -203,9 +223,10 @@ public class CAAudioFileReader extends AudioFileReader {
             stream = new CAURLInputStream(url);
         } else {
             final URLConnection urlConnection = url.openConnection();
+            urlConnection.setConnectTimeout(connectTimeout);
             final String contentType = urlConnection.getContentType();
             final InputStream rawStream = buffer(url.openStream());
-            final Integer fileTypeHint = toFileTypeHint(contentType);
+            final int fileTypeHint = toFileTypeHint(contentType);
             fileFormat = getAudioFileFormat(rawStream, fileTypeHint);
             stream = new CAStreamInputStream(rawStream, fileTypeHint, bufferSize);
         }
