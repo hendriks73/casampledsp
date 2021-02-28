@@ -72,7 +72,12 @@ public final class CANativeLibraryLoader {
         }
         boolean loaded = false;
         try {
-            CANativeLibraryLoader.loadLibrary("casampledsp-x86_64");
+            final String arch = System.getProperty("os.arch");
+            if ("aarch64".equals(arch) || "arm64".equals(arch)) {
+                CANativeLibraryLoader.loadLibrary("casampledsp-arm64");
+            } else {
+                CANativeLibraryLoader.loadLibrary("casampledsp-x86_64");
+            }
             loaded = true;
         } catch (Error e) {
             Logger.getLogger(CANativeLibraryLoader.class.getName()).severe("Failed to load native library 'casampledsp'. Please check your library path. CASampledSP will be dysfunctional.");

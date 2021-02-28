@@ -21,6 +21,13 @@
         </dependency>
         <dependency>
             <groupId>com.tagtraum</groupId>
+            <artifactId>casampledsp-arm64</artifactId>
+            <version>${project.version}</version>
+            <type>dylib</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tagtraum</groupId>
             <artifactId>casampledsp-java</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
@@ -91,6 +98,14 @@
                                 <artifactItem>
                                     <groupId>com.tagtraum</groupId>
                                     <artifactId>casampledsp-x86_64</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>dylib</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.tagtraum</groupId>
+                                    <artifactId>casampledsp-arm64</artifactId>
                                     <version>${project.version}</version>
                                     <type>dylib</type>
                                     <overWrite>true</overWrite>

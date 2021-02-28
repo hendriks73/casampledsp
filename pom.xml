@@ -43,6 +43,7 @@
     <modules>
         <module>casampledsp-java</module>
         <module>casampledsp-x86_64</module>
+        <module>casampledsp-arm64</module>
         <module>casampledsp-complete</module>
     </modules>
 
@@ -347,7 +348,8 @@
         <!-- override with -D on commandline to pass additional flags, like -DDEBUG via the cflags property -->
         <cflags />
         <!-- Custom JDK: -->
-        <darwin.headers.jni>${env.JAVA_HOME}/include/</darwin.headers.jni>
+        <darwin.headers.jni.x86_64>${env.JAVA_HOME}/include/</darwin.headers.jni.x86_64>
+        <darwin.headers.jni.arm64>${env.JAVA_HOME_ARM}/include/</darwin.headers.jni.arm64>
         <!-- add -DDEBUG to enable standard out debug messages -->
         <darwin.compiler.startoptions>${cflags} -stdlib=libc++ -DTARGET_OS_MAC -Wall -arch ${arch} -fmessage-length=0 -pipe -Wno-trigraphs
             -fpascal-strings -fasm-blocks -Os -isysroot ${isysroot}

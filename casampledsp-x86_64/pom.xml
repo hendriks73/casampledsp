@@ -8,8 +8,8 @@
     </parent>
     <artifactId>casampledsp-x86_64</artifactId>
     <packaging>dylib</packaging>
-    <name>CASampledSP Native Library (64bit)</name>
-    <description>x86_64/64bit library for CASampledSP.</description>
+    <name>CASampledSP Native Library (x86_64)</name>
+    <description>x86_64 library for CASampledSP.</description>
 
     <dependencies>
         <dependency>
@@ -66,7 +66,7 @@
                     </compilerStartOptions>
 
                     <javahOS>darwin</javahOS>
-                    <jdkIncludePath>${darwin.headers.jni}</jdkIncludePath>
+                    <jdkIncludePath>${darwin.headers.jni.x86_64}</jdkIncludePath>
 
                     <sources>
                         <source>
