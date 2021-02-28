@@ -17,7 +17,7 @@ Developer
 
         * Apple Command Line Tools, available via {{https://developer.apple.com/}}, or XCode, {{https://developer.apple.com/xcode/}}
 
-        * a JDK for both x86_64 and aarch64 (to run Maven and get the macOS JNI headers)
+        * a JDK (to run Maven and get the macOS JNI headers)
 
         * Doxygen, e.g. available via {{{https://www.macports.org}MacPorts}} or {{{https://brew.sh}HomeBrew}}
 
@@ -32,8 +32,7 @@ git clone git@github.com:hendriks73/casampledsp.git casampledsp
     JDK's JNI headers, add
 
 +-------------------------------+
--Ddarwin.headers.jni.x84_64=/Library/Java/JavaVirtualMachines/jdk-10.jdk/Contents/Home/include/
--Ddarwin.headers.jni.arm64=/Library/Java/JavaVirtualMachines/jdk-11_arm.jdk/include/
+-Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk-10.jdk/Contents/Home/include/
 +-------------------------------+
 
     to your mvn call.
@@ -44,8 +43,7 @@ git clone git@github.com:hendriks73/casampledsp.git casampledsp
     you installed the macOS SDK, and the macOS JDK:
 
 +-------------------------------+
-mvn -Ddarwin.headers.jni.x86_64=/Library/Java/JavaVirtualMachines/jdk-10.jdk/Contents/Home/include/ \
-    -Ddarwin.headers.jni.arm64=/Library/Java/JavaVirtualMachines/jdk-11-arm.jdk/include/ \
+mvn -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk-10.jdk/Contents/Home/include/ \
     -Dmmacosx-version-min=10.7 \
     -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk \
     clean install
