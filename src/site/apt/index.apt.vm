@@ -9,7 +9,7 @@ Introduction
 
     <CASampledSP> is a free implementation of the
     {{{https://docs.oracle.com/en/java/javase/11/docs/api/java.desktop/javax/sound/sampled/spi/package-summary.html}javax.sound.sampled.spi}}
-    interfaces. It is part of the {{{http://www.tagtraum.com/sampledsp.html}SampledSP}} collection of
+    interfaces. It is part of the {{{https://www.tagtraum.com/sampledsp.html}SampledSP}} collection of
     <<<javax.sound.sampled>>> libraries.
 
     Its main purpose is to decode audio from various formats at high speed. Examples for supported
@@ -21,7 +21,7 @@ Introduction
 
     The easiest way to use <CASampledSP> (other than simply using the
     {{{https://repo1.maven.org/maven2/com/tagtraum/casampledsp-complete/${projectversion}/casampledsp-complete-${projectversion}.jar}jar}}
-    is to start a {{{http://maven.apache.org/}Maven}} project and introduce a <CASampledSP> dependency.
+    is to start a {{{https://maven.apache.org/}Maven}} project and introduce a <CASampledSP> dependency.
 
     To do so, add something like this to the dependencies section of your pom:
 
@@ -37,12 +37,12 @@ Introduction
 
 * Requirements
 
-    <CASampledSP> requires OS X 10.7 or later and an Intel processor. Only 64 bit are supported.
+    <CASampledSP> requires OS X 10.7 or later and an Intel or ARM processor. Only 64 bit are supported.
 
 * Alternatives
 
     For a cross platform service provider implementation featuring free formats like FLAC and OGG, take a look at
-    {{{http://www.tagtraum.com/ffsampledsp/}FFSampledSP}}.
+    {{{https://www.tagtraum.com/ffsampledsp/}FFSampledSP}}.
 
     For a 32/64 bit service provider implementation for Windows 7 or later, based on Microsoft's Media Foundation,
-    check out {{{http://www.tagtraum.com/mfsampledsp/}MFSampledSP}}.
+    check out {{{https://www.tagtraum.com/mfsampledsp/}MFSampledSP}}.

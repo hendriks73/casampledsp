@@ -18,13 +18,13 @@
     <googleAnalyticsAccountId>UA-7561371-2</googleAnalyticsAccountId>
     <bannerLeft>
         <name>CASampledSP</name>
-        <href>http://www.tagtraum.com/casampledsp</href>
+        <href>https://www.tagtraum.com/casampledsp</href>
         <src>./images/casampledsp-banner.png</src>
         <width>400</width>
         <height>120</height>
     </bannerLeft>
     <bannerRight>
-        <href>http://www.tagtraum.com/</href>
+        <href>https://www.tagtraum.com/</href>
         <src>./images/tagtraum-banner.png</src>
         <width>90</width>
         <height>60</height>
@@ -35,14 +35,14 @@
             <link rel="icon" type="image/x-icon" href="../favicon.ico" />
         </head>
         <links>
-            <item name="tagtraum" href="http://www.tagtraum.com/"/>
-            <item name="beaTunes" href="http://www.beatunes.com/"/>
+            <item name="tagtraum" href="https://www.tagtraum.com/"/>
+            <item name="beaTunes" href="https://www.beatunes.com/"/>
         </links>
 
         <menu name="CASampledSP">
             <item name="Introduction" href="index.html"/>
             <item name="Developer" href="developer.html"/>
-            <item name="Release" href="http://www.beatunes.com/repo/maven2/com/tagtraum/"/>
+            <item name="Release" href="https://www.beatunes.com/repo/maven2/com/tagtraum/"/>
             <item name="JavaDocs" href="apidocs/index.html"/>
             <item name="C-Docs" href="doxygen/index.html"/>
         </menu>
