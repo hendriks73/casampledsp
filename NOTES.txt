@@ -1,3 +1,8 @@
+0.9.25
+
+Updated JUnit and Ant dependencies.
+
+
 0.9.24
 
 Added support for arm64.

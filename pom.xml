@@ -51,20 +51,13 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
+            <version>[4.13.1,)</version>
             <scope>test</scope>
-            <exclusions>
-                <!-- Hamcrest is not needed at this point -->
-                <exclusion>
-                    <groupId>org.hamcrest</groupId>
-                    <artifactId>hamcrest-core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.ant</groupId>
             <artifactId>ant</artifactId>
-            <version>1.9.15</version>
+            <version>[1.10.9,)</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
