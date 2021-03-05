@@ -25,7 +25,7 @@ jobs:
           architecture: x64
       - name: Build with Maven
         run: mvn -B package --file pom.xml
-      - run: mkdir staging && cp target/*.jar staging
+      - run: mkdir staging && cp casampledsp-complete/target/*.jar staging
       - uses: actions/upload-artifact@v2
         with:
           name: Package
