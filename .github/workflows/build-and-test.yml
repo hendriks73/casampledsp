@@ -24,14 +24,13 @@ jobs:
           java-version: 1.8
           architecture: x64
       - name: Build with Maven
-        run: mvn -B package --file pom.xml
+        run: mvn -B cobertura:cobertura package --file pom.xml
       - run: mkdir staging && cp casampledsp-complete/target/*.jar staging
       - uses: actions/upload-artifact@v2
         with:
           name: Package
           path: staging
-      - name: Test Coverage
-        run: mvn -B cobertura:cobertura --file pom.xml
+      - name: Upload CodeCov Report
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
