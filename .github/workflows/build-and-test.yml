@@ -30,3 +30,9 @@ jobs:
         with:
           name: Package
           path: staging
+      - name: Test Coverage
+        run: mvn -B cobertura:cobertura --file pom.xml
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+        if: ${{ always() }}
