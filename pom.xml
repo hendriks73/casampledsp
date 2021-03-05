@@ -43,7 +43,7 @@
     <modules>
         <module>casampledsp-java</module>
         <module>casampledsp-x86_64</module>
-        <module>casampledsp-arm64</module>
+        <module>casampledsp-aarch64</module>
         <module>casampledsp-complete</module>
     </modules>
 

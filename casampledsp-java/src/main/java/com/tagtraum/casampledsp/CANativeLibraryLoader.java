@@ -74,7 +74,7 @@ public final class CANativeLibraryLoader {
         try {
             final String arch = System.getProperty("os.arch");
             if ("aarch64".equals(arch) || "arm64".equals(arch)) {
-                CANativeLibraryLoader.loadLibrary("casampledsp-arm64");
+                CANativeLibraryLoader.loadLibrary("casampledsp-aarch64");
             } else {
                 CANativeLibraryLoader.loadLibrary("casampledsp-x86_64");
             }
