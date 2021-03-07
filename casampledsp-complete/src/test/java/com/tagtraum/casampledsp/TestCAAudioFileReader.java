@@ -13,6 +13,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -216,4 +217,23 @@ public class TestCAAudioFileReader {
             file.delete();
         }
     }
-}
+
+
+    @Test
+    public void testGetAudioInputStreamURLAndSeek() throws IOException, UnsupportedAudioFileException {
+        // first copy the file from resources to actual location in temp
+        final String filename = "test.mp3";
+        final File file = File.createTempFile("testGetAudioInputStreamURLAndSeek", filename);
+        extractFile(filename, file);
+        try {
+            final AudioInputStream audioInputStream = new CAAudioFileReader().getAudioInputStream(file.toURI().toURL());
+            // try seeking
+            if (audioInputStream instanceof CAAudioInputStream) {
+                if (((CAAudioInputStream) audioInputStream).isSeekable()) {
+                    ((CAAudioInputStream) audioInputStream).seek(20, TimeUnit.SECONDS);
+                }
+            }
+        } finally {
+            file.delete();
+        }
+    }}
