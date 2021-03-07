@@ -8,14 +8,44 @@ README.md
 *CASampledSP* is an implementation of the
 [javax.sound.sampled](https://docs.oracle.com/en/java/javase/11/docs/api/java.desktop/javax/sound/sampled/spi/package-summary.html)
 service provider interfaces based on Apple's Core Audio library, supporting all its file formats (mp3, aac, ...).
-It is part of the [SampledSP](http://www.tagtraum.com/sampledsp.html) collection of `javax.sound.sampled`
+It is part of the [SampledSP](https://www.tagtraum.com/sampledsp.html) collection of `javax.sound.sampled`
 libraries.
 
 Its main purpose is to decode audio files or streams to signed linear pcm.
 
 This library comes with absolutely no support, warranty etc. you name it.
 
-Binaries and more info can be found at its [tagtraum home](http://www.tagtraum.com/casampledsp/).
+Binaries and more info can be found at its [tagtraum home](https://www.tagtraum.com/casampledsp/).
+
+Usage Example
+-------------
+
+Note that when opening a compressed file with *CASamplesDP*, you still need to
+convert to PCM in order to actually decode the file.
+
+Here's a simple example for how that's done for mp3 to wave: 
+
+```java
+public static void mp3ToWav(File mp3Data) throws UnsupportedAudioFileException, IOException {
+    // open stream
+    AudioInputStream mp3Stream = AudioSystem.getAudioInputStream(mp3Data);
+    AudioFormat sourceFormat = mp3Stream.getFormat();
+    // create audio format object for the desired stream/audio format
+    // this is *not* the same as the file format (wav)
+    AudioFormat convertFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 
+        sourceFormat.getSampleRate(), 16, 
+        sourceFormat.getChannels(), 
+        sourceFormat.getChannels() * 2,
+        sourceFormat.getSampleRate(),
+        false);
+    // create stream that delivers the desired format
+    AudioInputStream converted = AudioSystem.getAudioInputStream(convertFormat, mp3Stream);
+    // write stream into a file with file format wav
+    AudioSystem.write(converted, Type.WAVE, new File("C:\\temp\\out.wav"));
+}
+```
+
+See also [here](https://stackoverflow.com/a/41850901/942774).
 
 
 Build
@@ -25,13 +55,13 @@ You can only build this library on macOS.
 
 To do so, you also need:
 
-- Maven 3.0.5 or later, http://maven.apache.org/
+- Maven 3.0.5 or later, https://maven.apache.org/
 - Apple Command Line Tools, available via https://developer.apple.com/,
   or XCode, https://developer.apple.com/xcode/
-- a JDK (to run Maven and get the OSX JNI headers)
+- a JDK (to run Maven and get the JNI headers)
 - [Doxygen](http://www.doxygen.org), available via [MacPorts](https://www.macports.org) or [HomeBrew](https://brew.sh)
 
-Once you have all this, you need to adjust some properties in the parent pom.xml.
+Once you have all this, you need to adjust some properties in the parent `pom.xml`.
 Or.. simply override them using `-Dname=value` notation. E.g. to point to your
 Oracle JDK JNI headers, add e.g.
 
@@ -49,4 +79,4 @@ So all in all, something like the following might work for you:
 
 Enjoy.
 
-http://www.tagtraum.com/casampledsp/
+https://www.tagtraum.com/casampledsp/
