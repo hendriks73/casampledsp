@@ -20,7 +20,16 @@ Binaries and more info can be found at its [tagtraum home](https://www.tagtraum.
 Usage Example
 -------------
 
-Note that when opening a compressed file with *CASamplesDP*, you still need to
+To use the library with Maven, introduce the following dependency:
+          
+```xml
+<dependency>
+  <groupId>com.tagtraum</groupId>
+  <artifactId>casampledsp-complete</artifactId>
+</dependency>
+```
+
+Note that when opening a compressed file with *CASampledSP*, you still need to
 convert to PCM in order to actually decode the file.
 
 Here's a simple example for how that's done for mp3 to wave: 
