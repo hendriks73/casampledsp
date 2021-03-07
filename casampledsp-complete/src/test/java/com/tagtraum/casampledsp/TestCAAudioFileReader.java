@@ -8,10 +8,7 @@ package com.tagtraum.casampledsp;
 
 import org.junit.Test;
 
-import javax.sound.sampled.AudioFileFormat;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.sound.sampled.*;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -188,4 +185,35 @@ public class TestCAAudioFileReader {
         }
     }
 
+    @Test
+    public void testSetTimeout() {
+        final CAAudioFileReader reader = new CAAudioFileReader();
+        reader.setConnectTimeout(500);
+        assertEquals(500, reader.getConnectTimeout());
+    }
+
+    @Test
+    public void testToFileTypeHint() {
+        final CAAudioFileReader reader = new CAAudioFileReader();
+        assertEquals(1297106739, reader.toFileTypeHint("audio/MPEG"));
+        assertEquals(1832149350, reader.toFileTypeHint("audio/mp4"));
+        assertEquals(1463899717, reader.toFileTypeHint("audio/vnd.WAVE;something"));
+        assertEquals(0, reader.toFileTypeHint("garbage"));
+    }
+
+    @Test
+    public void testGetAudioInputStreamURL() throws IOException, UnsupportedAudioFileException {
+        // first copy the file from resources to actual location in temp
+        final String filename = "test.mp3";
+        final File file = File.createTempFile("testGetAudioFileFormatURL", filename);
+        extractFile(filename, file);
+        try {
+            final AudioInputStream audioInputStream = new CAAudioFileReader().getAudioInputStream(file.toURI().toURL());
+            final AudioFormat format = audioInputStream.getFormat();
+            assertEquals(2, format.getChannels());
+            assertEquals(38.28125f, format.getFrameRate(), 0.001f);
+        } finally {
+            file.delete();
+        }
+    }
 }

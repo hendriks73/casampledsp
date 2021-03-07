@@ -47,7 +47,7 @@ public class CAAudioFileFormat extends AudioFileFormat {
     private static final Type MP4 = new Type("MP4", "mp4");
     private static final Type MPEG4VIDEO = new Type("MPEG-4 Video", "m4v");
 
-    private static Map<Integer, Type> TYPE_MAP = new HashMap<>();
+    private static final Map<Integer, Type> TYPE_MAP = new HashMap<>();
 
     static {
         TYPE_MAP.put(CAAudioFormat.CAEncoding.MP1.getDataFormat(), CAAudioFileFormat.MP1);
@@ -59,7 +59,7 @@ public class CAAudioFileFormat extends AudioFileFormat {
     }
 
 
-    private HashMap<String, Object> properties;
+    private final HashMap<String, Object> properties;
 
     public CAAudioFileFormat(final String url, final int dataFormat,
                              final float sampleRate, final int sampleSize, final int channels, final int packetSize,

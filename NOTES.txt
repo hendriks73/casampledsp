@@ -1,6 +1,7 @@
 0.9.25
 
 Updated JUnit and Ant dependencies.
+Improved test coverage.
 Renamed arm64 to aarch64.
 Added missing files to repo.
 Added automatic build via GitHub actions.

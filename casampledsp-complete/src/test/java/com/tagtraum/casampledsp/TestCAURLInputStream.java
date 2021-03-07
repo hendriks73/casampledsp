@@ -153,6 +153,23 @@ public class TestCAURLInputStream {
     }
 
     @Test
+    public void testReadIndividualBytes() throws IOException, UnsupportedAudioFileException {
+        final String filename = "test.wav";
+        final File file = File.createTempFile("testReadIndividualBytes", filename);
+        extractFile(filename, file);
+        int bytesRead = 0;
+        try (final CAURLInputStream in = new CAURLInputStream(file.toURI().toURL())) {
+            // this may be super slow..
+            while (in.read() != -1) {
+                bytesRead ++;
+            }
+        } finally {
+            file.delete();
+        }
+        assertEquals(133632, (bytesRead / 4));
+    }
+
+    @Test
     public void testBogusFile() throws IOException {
         final String filename = "test.wav";
         final File file = File.createTempFile("testBogusFile", filename);
@@ -251,4 +268,20 @@ public class TestCAURLInputStream {
             file.delete();
         }
     }
+
+    @Test
+    public void testToString() throws IOException, UnsupportedAudioFileException {
+        final String filename = "test.mp3";
+        final File file = File.createTempFile("testToString", filename);
+        extractFile(filename, file);
+        final URL url = file.toURI().toURL();
+        try (final CAURLInputStream in = new CAURLInputStream(url)) {
+            final String s = in.toString();
+            assertTrue(s.contains(url.toString()));
+            assertTrue(s.contains("seekable=true"));
+        } finally {
+            file.delete();
+        }
+    }
+
 }

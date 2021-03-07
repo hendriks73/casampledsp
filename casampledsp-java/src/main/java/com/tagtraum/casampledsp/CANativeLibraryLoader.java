@@ -29,6 +29,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * First tries to load a library the default way using {@link System#loadLibrary(String)},
  * upon failure falls back to the base directory of the given class package or the jar the class
@@ -101,7 +103,7 @@ public final class CANativeLibraryLoader {
      * @param libName name of the library, as described in {@link System#loadLibrary(String)} );
      * @param baseClass class that identifies the jar
      */
-    public static synchronized void loadLibrary(final String libName, final Class baseClass) {
+    public static synchronized void loadLibrary(final String libName, final Class<?> baseClass) {
         final String key = libName + "|" + baseClass.getName();
         if (LOADED.contains(key)) return;
         final String packagedNativeLib = libName + "-" + VERSION + NATIVE_LIBRARY_EXTENSION;
@@ -140,7 +142,7 @@ public final class CANativeLibraryLoader {
      * @param sourceResource resource name
      * @param targetFile target file
      */
-    private static void extractResourceToFile(final Class baseClass, final String sourceResource, final File targetFile) {
+    private static void extractResourceToFile(final Class<?> baseClass, final String sourceResource, final File targetFile) {
         try (final InputStream in = baseClass.getResourceAsStream(sourceResource)) {
             if (in != null) {
                 try (final OutputStream out = new FileOutputStream(targetFile)) {
@@ -159,38 +161,21 @@ public final class CANativeLibraryLoader {
     /**
      * Finds a file that is either in the classpath or in the same directory as a given class's jar.
      *
-     * @param name (partial) filename
+     * @param name (partial) filename, only used for error reporting
      * @param baseClass base class
      * @param filter filter that determines whether a file is a match
      * @return file
      * @throws java.io.FileNotFoundException if a matching file cannot be found
      */
-    public static String findFile(final String name, final Class baseClass, final FileFilter filter)
+    public static String findFile(final String name, final Class<?> baseClass, final FileFilter filter)
             throws FileNotFoundException {
         try {
-            final String filename;
-            final String fullyQualifiedBaseClassName = baseClass.getName();
-            final String baseClassName = fullyQualifiedBaseClassName.substring(fullyQualifiedBaseClassName.lastIndexOf('.') + 1);
-            final URL url = baseClass.getResource(baseClassName + CLASS_FILE_EXTENSION);
-            if (url == null) {
-                throw new FileNotFoundException("Failed to get URL of " + fullyQualifiedBaseClassName);
-            } else {
-                File directory = null;
-                final String path = decodeURL(url.getPath());
-                if (JAR_PROTOCOL.equals(url.getProtocol())) {
-                    final String jarFileName = new URL(path.substring(0, path.lastIndexOf('!'))).getPath();
-                    directory = new File(jarFileName).getParentFile();
-                } else if (FILE_PROTOCOL.equals(url.getProtocol())) {
-                    directory = new File(path.substring(0, path.length()
-                            - fullyQualifiedBaseClassName.length() - CLASS_FILE_EXTENSION.length()));
-                }
-                final File[] libs = directory.listFiles(filter);
-                if (libs == null || libs.length == 0) {
-                    throw new FileNotFoundException("No matching files in " + directory);
-                }
-                filename = libs[0].toString();
+            final File directory = getClasspathOrJarDir(baseClass);
+            final File[] libs = directory.listFiles(filter);
+            if (libs == null || libs.length == 0) {
+                throw new FileNotFoundException("No matching files in " + directory);
             }
-            return filename;
+            return libs[0].toString();
         } catch (UnsupportedEncodingException | MalformedURLException e) {
             final FileNotFoundException fnfe = new FileNotFoundException(name + ": " + e.toString());
             fnfe.initCause(e);
@@ -198,7 +183,30 @@ public final class CANativeLibraryLoader {
         }
     }
 
-    private static class LibFileFilter implements FileFilter {
+    /**
+     * Return the classpath or the directory of the JAR of the given class.
+     *
+     * @param baseClass base class
+     * @return classpath or the directory of the JAR of the given class.
+     */
+    public static File getClasspathOrJarDir(final Class<?> baseClass) throws UnsupportedEncodingException, MalformedURLException, FileNotFoundException {
+        File directory = null;
+        final URL url = baseClass.getResource(baseClass.getSimpleName() + CLASS_FILE_EXTENSION);
+        if (url == null) {
+            throw new FileNotFoundException("Failed to get URL of " + baseClass.getName());
+        }
+        final String path = decodeURL(url.getPath());
+        if (JAR_PROTOCOL.equals(url.getProtocol())) {
+            final String jarFileName = new URL(path.substring(0, path.lastIndexOf('!'))).getPath();
+            directory = new File(jarFileName).getParentFile();
+        } else if (FILE_PROTOCOL.equals(url.getProtocol())) {
+            directory = new File(path.substring(0, path.length()
+                    - baseClass.getName().length() - CLASS_FILE_EXTENSION.length()));
+        }
+        return directory;
+    }
+
+    public static class LibFileFilter implements FileFilter {
         private final String libName;
 
         public LibFileFilter(final String libName) {
@@ -222,7 +230,7 @@ public final class CANativeLibraryLoader {
      * @param s url
      * @return decoded URL
      */
-    private static String decodeURL(final String s) throws UnsupportedEncodingException {
+    private static String decodeURL(final String s) {
         boolean needToChange = false;
         final int numChars = s.length();
         final StringBuilder sb = new StringBuilder(numChars > 500 ? numChars / 2 : numChars);
@@ -270,7 +278,7 @@ public final class CANativeLibraryLoader {
                         throw new IllegalArgumentException("CANativeLibraryLoader: Incomplete trailing escape (%) pattern");
                     }
 
-                    sb.append(new String(bytes, 0, pos, "UTF-8"));
+                    sb.append(new String(bytes, 0, pos, UTF_8));
                 } catch (NumberFormatException e) {
                     throw new IllegalArgumentException("CANativeLibraryLoader: Illegal hex characters in escape (%) pattern - " + e.getMessage());
                 }

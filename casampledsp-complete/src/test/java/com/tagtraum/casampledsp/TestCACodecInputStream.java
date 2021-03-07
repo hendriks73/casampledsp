@@ -107,6 +107,39 @@ public class TestCACodecInputStream {
         }
     }
 
+    @Test(expected = IOException.class)
+    public void testSeekClosedStream() throws IOException, UnsupportedAudioFileException {
+        final String filename = "test.mp3";
+        final File file = File.createTempFile("testSeekClosedStream", filename);
+        extractFile(filename, file);
+        AudioInputStream mp3Stream = null;
+        CACodecInputStream pcmStream = null;
+        try {
+            mp3Stream = new CAAudioFileReader().getAudioInputStream(file);
+            final AudioFormat targetFormat = new AudioFormat(CAAudioFormat.CAEncoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
+            pcmStream = new CACodecInputStream(targetFormat, (CAAudioInputStream) mp3Stream);
+            assertTrue(pcmStream.isSeekable());
+        } finally {
+            if (pcmStream != null) {
+                try {
+                    pcmStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (mp3Stream != null) {
+                try {
+                    mp3Stream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            file.delete();
+        }
+        // now seek in the already closed stream.
+        pcmStream.seek(500, TimeUnit.SECONDS);
+    }
+
     @Test
     public void testReadConvertM4AFileToPCM() throws IOException, UnsupportedAudioFileException {
         final String filename = "test.m4a"; // apple lossless

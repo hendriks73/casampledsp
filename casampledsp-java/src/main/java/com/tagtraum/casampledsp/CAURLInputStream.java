@@ -23,6 +23,7 @@ package com.tagtraum.casampledsp;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
@@ -54,7 +55,8 @@ public class CAURLInputStream extends CANativePeerInputStream {
     public CAURLInputStream(final URL url, final int bufferSize) throws IOException, UnsupportedAudioFileException {
         this.url = url;
         this.nativeBuffer = ByteBuffer.allocateDirect(bufferSize);
-        this.nativeBuffer.limit(0);
+        // we cast, because of https://github.com/eclipse/jetty.project/issues/3244
+        ((Buffer)this.nativeBuffer).limit(0);
         this.pointer = open(url.toString(), bufferSize);
         this.seekable = isSeekable(pointer);
     }

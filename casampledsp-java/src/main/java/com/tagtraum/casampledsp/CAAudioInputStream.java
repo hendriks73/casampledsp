@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class CAAudioInputStream extends AudioInputStream {
 
-    private CANativePeerInputStream nativePeerInputStream;
+    private final CANativePeerInputStream nativePeerInputStream;
 
     public CAAudioInputStream(final CANativePeerInputStream nativePeerInputStream, final AudioFormat format, final long length) {
         super(nativePeerInputStream, new AudioFormat(

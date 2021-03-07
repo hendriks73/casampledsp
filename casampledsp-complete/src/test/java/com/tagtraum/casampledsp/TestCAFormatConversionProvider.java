@@ -10,7 +10,9 @@ import org.junit.Test;
 
 import javax.sound.sampled.AudioFormat;
 
-import static org.junit.Assert.assertEquals;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * TestCAFormatConversionProvider.
@@ -32,4 +34,20 @@ public class TestCAFormatConversionProvider {
         System.out.println("Formats: " + targetFormats.length);
         assertEquals(0, targetFormats.length);
     }
+
+    @Test
+    public void testGetTargetEncodings() {
+        final AudioFormat.Encoding[] targetEncodings = new CAFormatConversionProvider().getTargetEncodings();
+        assertArrayEquals(new AudioFormat.Encoding[] {CAAudioFormat.CAEncoding.PCM_SIGNED}, targetEncodings);
+    }
+    
+    @Test
+    public void testGetSourceEncodings() {
+        final AudioFormat.Encoding[] sourceEncodings = new CAFormatConversionProvider().getSourceEncodings();
+        final Set<CAAudioFormat.CAEncoding> supportedEncodings = CAAudioFormat.CAEncoding.getSupportedEncodings();
+        for (final AudioFormat.Encoding encoding : sourceEncodings) {
+            assertTrue(supportedEncodings.contains(encoding));
+        }
+    }
+
 }

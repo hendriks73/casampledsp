@@ -47,7 +47,7 @@ public class CAAudioFileReader extends AudioFileReader {
         nativeLibraryLoaded = CANativeLibraryLoader.loadLibrary();
     }
 
-    private static Map<URL, AudioFileFormat> cache = Collections.synchronizedMap(new LinkedHashMap<URL, AudioFileFormat>() {
+    private static final Map<URL, AudioFileFormat> cache = Collections.synchronizedMap(new LinkedHashMap<URL, AudioFileFormat>() {
         private static final int MAX_ENTRIES = 20;
 
         protected boolean removeEldestEntry(final Map.Entry eldest) {
@@ -74,7 +74,7 @@ public class CAAudioFileReader extends AudioFileReader {
     }
 
     /**
-     * Return the connnection timeout for network resources.
+     * Return the connection timeout for network resources.
      *
      * @return timeout in ms
      */
@@ -98,7 +98,6 @@ public class CAAudioFileReader extends AudioFileReader {
             return intGetAudioFormat(buf, length, fileTypeHint);
         } finally {
             stream.reset();
-
         }
     }
 
@@ -187,7 +186,7 @@ public class CAAudioFileReader extends AudioFileReader {
      * @param contentType content-type
      * @return specific hint or {@code 0}, if we don't really know what it is.
      */
-    private int toFileTypeHint(final String contentType) {
+    public int toFileTypeHint(final String contentType) {
         if (contentType == null || contentType.isEmpty()) return 0;
         final int semiColon = contentType.indexOf(';');
         final String rawType = semiColon >= 0 ? contentType.substring(0, semiColon) : contentType;

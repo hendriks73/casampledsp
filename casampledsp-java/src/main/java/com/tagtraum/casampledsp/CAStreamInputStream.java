@@ -76,7 +76,7 @@ public class CAStreamInputStream extends CANativePeerInputStream {
 
     /**
      * Always throws {@link UnsupportedOperationException}, because stream based
-     * {@link CANativePeerInputStream}s are not seekable
+     * {@link CANativePeerInputStream}s are not seekable.
      *
      * @param time time
      * @param timeUnit time unit

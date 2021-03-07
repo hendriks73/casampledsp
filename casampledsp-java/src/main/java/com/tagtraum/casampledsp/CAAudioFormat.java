@@ -124,8 +124,8 @@ public class CAAudioFormat extends AudioFormat {
         public static CAEncoding AMR = new CAEncoding("AMR", kAudioFormatAMR);
         public static CAEncoding AC3 = new CAEncoding("AC3", kAudioFormatAC3);
 
-        private static Map<Integer, CAEncoding> DATAFORMAT_MAP = new HashMap<>();
-        private static Map<String, CAEncoding> NAME_MAP = new HashMap<>();
+        private static final Map<Integer, CAEncoding> DATAFORMAT_MAP = new HashMap<>();
+        private static final Map<String, CAEncoding> NAME_MAP = new HashMap<>();
 
         static {
             DATAFORMAT_MAP.put(MP1.getDataFormat(), MP1);
@@ -164,7 +164,7 @@ public class CAAudioFormat extends AudioFormat {
             }
         }
 
-        private int dataFormat;
+        private final int dataFormat;
 
         public CAEncoding(final String name, final int dataFormat) {
             super(name);
