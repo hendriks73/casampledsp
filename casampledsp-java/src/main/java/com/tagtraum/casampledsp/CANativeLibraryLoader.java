@@ -230,7 +230,7 @@ public final class CANativeLibraryLoader {
      * @param s url
      * @return decoded URL
      */
-    private static String decodeURL(final String s) {
+    public static String decodeURL(final String s) {
         boolean needToChange = false;
         final int numChars = s.length();
         final StringBuilder sb = new StringBuilder(numChars > 500 ? numChars / 2 : numChars);

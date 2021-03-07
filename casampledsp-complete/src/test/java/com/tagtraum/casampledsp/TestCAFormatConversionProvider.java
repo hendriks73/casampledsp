@@ -50,4 +50,17 @@ public class TestCAFormatConversionProvider {
         }
     }
 
+    @Test
+    public void testIsConversionSupportedNonCAFormat() {
+        final AudioFormat format = new AudioFormat(44100, 16, 2, true, true);
+        assertFalse(new CAFormatConversionProvider().isConversionSupported(format, format));
+    }
+
+    @Test
+    public void testIsConversionSupportedCAFormat() {
+        final AudioFormat format = new AudioFormat(44100, 16, 2, true, true);
+        final CAAudioFormat caAudioFormat = new CAAudioFormat(CAAudioFormat.CAEncoding.WAVE_BE.getDataFormat(), 44100f, 16, 2, 0, 44100f, true, 0, true);
+        assertTrue(new CAFormatConversionProvider().isConversionSupported(format, caAudioFormat));
+    }
+
 }

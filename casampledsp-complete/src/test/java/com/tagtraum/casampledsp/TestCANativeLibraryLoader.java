@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import java.io.*;
 
+import static com.tagtraum.casampledsp.CANativeLibraryLoader.decodeURL;
 import static org.junit.Assert.*;
 
 /**
@@ -51,5 +52,27 @@ public class TestCANativeLibraryLoader {
         final File tempFile = File.createTempFile("mylib", ".dylib");
         tempFile.deleteOnExit();
         assertTrue(mylib.accept(tempFile));
+    }
+
+    @Test
+    public void testDecodeURL() {
+        assertEquals("someString", decodeURL("someString"));
+        assertEquals("someString some", decodeURL("someString%20some"));
+        assertEquals("  ", decodeURL("%20%20"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testDecodeURLIncompleteTrailingEscapePattern() {
+        decodeURL("someString%h");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testDecodeURLIllegalHex() {
+        decodeURL("someString%ah");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testDecodeURLNegativeValue() {
+        decodeURL("someString%-1");
     }
 }
