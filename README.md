@@ -4,7 +4,7 @@ README.md
 [![LGPL 2.1](https://img.shields.io/badge/License-LGPL_2.1-blue.svg)](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.tagtraum/casampledsp-complete/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.tagtraum/casampledsp-complete)
 [![Build and Test](https://github.com/hendriks73/casampledsp/workflows/Build%20and%20Test/badge.svg)](https://github.com/hendriks73/casampledsp/actions)
-[![CodeCov](https://codecov.io/gh/hendriks73/casampledsp/branch/master/graph/badge.svg?token=H98FM0SKQL)](https://codecov.io/gh/hendriks73/casampledsp/branch/master)
+[![CodeCov](https://codecov.io/gh/hendriks73/casampledsp/branch/main/graph/badge.svg?token=H98FM0SKQL)](https://codecov.io/gh/hendriks73/casampledsp/branch/main)
 
 *CASampledSP* is an implementation of the
 [javax.sound.sampled](https://docs.oracle.com/en/java/javase/11/docs/api/java.desktop/javax/sound/sampled/spi/package-summary.html)

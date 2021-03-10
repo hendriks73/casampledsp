@@ -337,7 +337,7 @@
     <scm>
         <connection>scm:git:git://github.com/hendriks73/casampledsp.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/hendriks73/casampledsp.git</developerConnection>
-        <url>https://github.com/hendriks73/casampledsp/tree/master</url>
+        <url>https://github.com/hendriks73/casampledsp/tree/main</url>
       <tag>HEAD</tag>
   </scm>
 
