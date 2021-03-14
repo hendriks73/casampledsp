@@ -31,6 +31,7 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          GPG_TTY: $(tty)
         run: |
           mvn \
             --no-transfer-progress \
