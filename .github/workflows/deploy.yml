@@ -46,3 +46,13 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
         if: ${{ always() }}
+      - id: deploy-site
+        name: Deploy to tagtraum site
+        env:
+          MAVEN_USERNAME: ${{ secrets.SITE_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.SITE_TOKEN }}
+        run: |
+          mvn \
+            --no-transfer-progress \
+            --batch-mode \
+            clean site site:deploy --file pom.xml
