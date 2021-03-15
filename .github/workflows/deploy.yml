@@ -40,18 +40,7 @@ jobs:
             --batch-mode \
             -Dgpg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} \
             -P release \
-            clean cobertura:cobertura deploy --file pom.xml
-      - run: mkdir staging && cp casampledsp-complete/target/*.jar staging
-      - uses: actions/upload-artifact@v2
-        with:
-          name: Package
-          path: staging
-
-      - name: Upload CodeCov Report
-        uses: codecov/codecov-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-        if: ${{ always() }}
+            clean deploy --file pom.xml
 
       - id: deploy-site
         name: Setup deployment to tagtraum site
