@@ -18,11 +18,16 @@ jobs:
           cat <(echo -e "${{ secrets.OSSRH_GPG_SECRET_KEY }}") | gpg --batch --import
           gpg --list-secret-keys --keyid-format LONG
       - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
+
+      - name: Set up publication to Maven Central
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
           architecture: x64
+          server-id: ossrh
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+
       - id: publish-to-central
         name: Publish to Central Repository
         env:
@@ -41,13 +46,24 @@ jobs:
         with:
           name: Package
           path: staging
+
       - name: Upload CodeCov Report
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
         if: ${{ always() }}
+
       - id: deploy-site
-        name: Deploy to tagtraum site
+        name: Setup deployment to tagtraum site
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+          architecture: x64
+          server-id: tagtraum-site
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+
+      - name: Deploy to tagtraum site
         env:
           MAVEN_USERNAME: ${{ secrets.SITE_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.SITE_TOKEN }}
