@@ -28,7 +28,7 @@ jobs:
         run: brew install doxygen
 
       - name: Build/test code with Maven
-        run: mvn -B cobertura:cobertura package --file pom.xml
+        run: mvn -B cobertura:cobertura install --file pom.xml
       - run: mkdir staging && cp casampledsp-complete/target/*.jar staging
       - uses: actions/upload-artifact@v2
         with:
