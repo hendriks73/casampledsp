@@ -19,6 +19,9 @@ jobs:
           gpg --list-secret-keys --keyid-format LONG
       - uses: actions/checkout@v2
 
+      - name: Install Doxygen
+        run: brew install doxygen
+
       - name: Set up publication to Maven Central
         uses: actions/setup-java@v1
         with:

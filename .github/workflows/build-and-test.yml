@@ -24,7 +24,10 @@ jobs:
           java-version: 1.8
           architecture: x64
 
-      - name: Build with Maven
+      - name: Install Doxygen
+        run: brew install doxygen
+
+      - name: Build/test code with Maven
         run: mvn -B cobertura:cobertura package --file pom.xml
       - run: mkdir staging && cp casampledsp-complete/target/*.jar staging
       - uses: actions/upload-artifact@v2
@@ -37,3 +40,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
         if: ${{ always() }}
+
+      - name: Build site with Maven
+        run: mvn -B clean site --file pom.xml
