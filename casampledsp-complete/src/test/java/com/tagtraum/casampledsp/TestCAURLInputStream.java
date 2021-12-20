@@ -153,6 +153,25 @@ public class TestCAURLInputStream {
     }
 
     @Test
+    public void testSeekAfterEOF() throws IOException, UnsupportedAudioFileException {
+        final String filename = "test.wav";
+        final File file = File.createTempFile("testSeekAfterEOF", filename);
+        extractFile(filename, file);
+
+        final byte[] buf = new byte[534528]; // 10sec
+        try (final CAURLInputStream in = new CAURLInputStream(file.toURI().toURL())) {
+            int justRead = in.read(buf);
+            assertEquals(534528, justRead);
+            in.seek(2, TimeUnit.SECONDS);
+            justRead = in.read(buf);
+            assertEquals(-1, justRead);
+            in.seek(1, TimeUnit.SECONDS);           
+        } finally {
+            file.delete();
+        }
+    }
+
+    @Test
     public void testReadIndividualBytes() throws IOException, UnsupportedAudioFileException {
         final String filename = "test.wav";
         final File file = File.createTempFile("testReadIndividualBytes", filename);

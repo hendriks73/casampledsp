@@ -24,6 +24,7 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
@@ -80,7 +81,7 @@ public class CACodecInputStream extends CANativePeerInputStream {
         }
 
         this.nativeBuffer = ByteBuffer.allocateDirect(bufferSize);
-        this.nativeBuffer.limit(0);
+        ((Buffer)this.nativeBuffer).limit(0);
         this.pointer = open(audioFormat, stream.getNativePeerInputStream(), stream.getNativePeerInputStreamPointer());
         this.wrappedStream = stream.getNativePeerInputStream();
     }
@@ -99,8 +100,8 @@ public class CACodecInputStream extends CANativePeerInputStream {
 
     @Override
     public void seek(final long time, final TimeUnit timeUnit) throws UnsupportedOperationException, IOException {
-        wrappedStream.seek(time, timeUnit);
-        nativeBuffer.limit(0);
+        this.wrappedStream.seek(time, timeUnit);
+        ((Buffer)this.nativeBuffer).limit(0);
         if (isOpen()) {
             reset(pointer);
         } else {

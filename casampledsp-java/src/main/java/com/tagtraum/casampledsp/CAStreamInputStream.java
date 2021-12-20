@@ -23,6 +23,7 @@ package com.tagtraum.casampledsp;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
@@ -58,7 +59,7 @@ public class CAStreamInputStream extends CANativePeerInputStream {
      */
     public CAStreamInputStream(final InputStream stream, final int hint, final int bufferSize) throws IOException, UnsupportedAudioFileException {
         this.nativeBuffer = ByteBuffer.allocateDirect(bufferSize);
-        this.nativeBuffer.limit(0);
+        ((Buffer)this.nativeBuffer).limit(0);
         this.pointer = open(hint, bufferSize);
         this.stream  = stream;
     }
@@ -92,7 +93,7 @@ public class CAStreamInputStream extends CANativePeerInputStream {
     protected void fillNativeBuffer() throws IOException {
         if (isOpen()) {
             // make sure we are at the start of the native buffer, before we fill it
-            nativeBuffer.limit(0);
+            ((Buffer)this.nativeBuffer).limit(0);
             // read data, until we have a new limit or we reached the end of the file
             int justRead;
             while ((justRead = stream.read(streamReadBuffer)) != -1) {

@@ -75,7 +75,7 @@ public class CAURLInputStream extends CANativePeerInputStream {
         } else {
             throw new IOException("Stream is already closed: " + url);
         }
-        nativeBuffer.limit(0);
+        ((Buffer)nativeBuffer).limit(0);
     }
 
     protected void fillNativeBuffer() throws IOException {

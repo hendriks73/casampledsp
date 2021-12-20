@@ -63,17 +63,25 @@ public class CAAudioFileFormat extends AudioFileFormat {
 
     public CAAudioFileFormat(final String url, final int dataFormat,
                              final float sampleRate, final int sampleSize, final int channels, final int packetSize,
-                             final float frameRate, final boolean bigEndian, final long durationInMs,
+                             final float frameRate,
+                             final int frameLength,
+                             final boolean bigEndian, final long durationInMicroSeconds,
                              final int bitRate, final boolean vbr)
             throws UnsupportedAudioFileException {
 
         super(getAudioFileFormatType(url, dataFormat), getLength(url),
                 new CAAudioFormat(dataFormat, sampleRate, sampleSize, channels, packetSize,
                         determineFrameRate(dataFormat, sampleRate, frameRate), bigEndian, bitRate, vbr),
-                sampleRate * durationInMs < 0 ? AudioSystem.NOT_SPECIFIED : (int)((sampleRate * durationInMs) / 1000.0)
+                sampleRate * durationInMicroSeconds < 0 ? AudioSystem.NOT_SPECIFIED : getFrameLength(sampleRate, durationInMicroSeconds)
         );
         this.properties = new HashMap<>();
-        if (durationInMs > 0) this.properties.put("duration", durationInMs * 1000L);
+        if (durationInMicroSeconds > 0) {
+            this.properties.put("duration", durationInMicroSeconds);
+        }
+    }
+
+    private static int getFrameLength(final float sampleRate, final long durationInMicroSeconds) {
+        return (int) Math.ceil((sampleRate * durationInMicroSeconds) / 1000.0 / 1000.0);
     }
 
     private static int getLength(final String urlString) {

@@ -83,7 +83,7 @@ public abstract class CANativePeerInputStream extends InputStream {
             if (!nativeBuffer.hasRemaining()) {
                 fillNativeBuffer();
                 if (!nativeBuffer.hasRemaining()) {
-                    // we're at the end
+                    // nothing more to read
                     close();
                     break;
                 }
@@ -91,6 +91,14 @@ public abstract class CANativePeerInputStream extends InputStream {
             final int chunkSize = Math.min(len-bytesRead, nativeBuffer.remaining());
             nativeBuffer.get(b, off+bytesRead, chunkSize);
             bytesRead += chunkSize;
+        }
+
+        if (!nativeBuffer.hasRemaining()) {
+            fillNativeBuffer();
+            if (!nativeBuffer.hasRemaining()) {
+                // we're at the end
+                close();
+            }
         }
         return bytesRead == 0 ? -1 : bytesRead;
     }
