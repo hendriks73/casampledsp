@@ -103,9 +103,6 @@ public class CAStreamInputStream extends CANativePeerInputStream {
                     break;
                 }
             }
-            if (justRead == -1) {
-                close();
-            }
         }
     }
 

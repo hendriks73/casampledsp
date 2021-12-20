@@ -1,6 +1,7 @@
 0.9.26
 
 Fixed rounding error when computing duration.
+Support seeking even after end of file has been reached.
 
 
 0.9.25

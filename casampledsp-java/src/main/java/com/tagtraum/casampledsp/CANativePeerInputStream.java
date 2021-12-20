@@ -65,7 +65,6 @@ public abstract class CANativePeerInputStream extends InputStream {
         }
         // we're at the end
         if (!nativeBuffer.hasRemaining()) {
-            close();
             return -1;
         }
         return nativeBuffer.get() & 0xff;
@@ -84,7 +83,6 @@ public abstract class CANativePeerInputStream extends InputStream {
                 fillNativeBuffer();
                 if (!nativeBuffer.hasRemaining()) {
                     // nothing more to read
-                    close();
                     break;
                 }
             }
@@ -97,7 +95,6 @@ public abstract class CANativePeerInputStream extends InputStream {
             fillNativeBuffer();
             if (!nativeBuffer.hasRemaining()) {
                 // we're at the end
-                close();
             }
         }
         return bytesRead == 0 ? -1 : bytesRead;
@@ -122,6 +119,7 @@ public abstract class CANativePeerInputStream extends InputStream {
     protected boolean isOpen() {
         return pointer != 0;
     }
+
 
     @Override
     public void close() throws IOException {

@@ -162,10 +162,14 @@ public class TestCAURLInputStream {
         try (final CAURLInputStream in = new CAURLInputStream(file.toURI().toURL())) {
             int justRead = in.read(buf);
             assertEquals(534528, justRead);
-            in.seek(2, TimeUnit.SECONDS);
             justRead = in.read(buf);
             assertEquals(-1, justRead);
-            in.seek(1, TimeUnit.SECONDS);           
+            in.seek(2, TimeUnit.SECONDS);
+            justRead = in.read(buf);
+            assertTrue(justRead > 0);
+            final int twoSecondsInBytes = 44100 * 2 * 4;
+            assertEquals(buf.length - twoSecondsInBytes, justRead);
+            in.seek(1, TimeUnit.SECONDS);
         } finally {
             file.delete();
         }
