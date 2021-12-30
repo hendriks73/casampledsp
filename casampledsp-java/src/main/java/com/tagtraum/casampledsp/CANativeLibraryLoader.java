@@ -177,7 +177,7 @@ public final class CANativeLibraryLoader {
             }
             return libs[0].toString();
         } catch (UnsupportedEncodingException | MalformedURLException e) {
-            final FileNotFoundException fnfe = new FileNotFoundException(name + ": " + e.toString());
+            final FileNotFoundException fnfe = new FileNotFoundException(name + ": " + e);
             fnfe.initCause(e);
             throw fnfe;
         }

@@ -104,7 +104,7 @@ public class CAAudioFileReader extends AudioFileReader {
     @Override
     public AudioFileFormat getAudioFileFormat(final File file) throws UnsupportedAudioFileException, IOException {
         if (!file.exists()) throw new FileNotFoundException(file.toString());
-        if (!file.canRead()) throw new IOException("Can't read " + file.toString());
+        if (!file.canRead()) throw new IOException("Can't read " + file);
         return getAudioFileFormat(fileToURL(file));
     }
 
@@ -239,7 +239,7 @@ public class CAAudioFileReader extends AudioFileReader {
 
     public AudioInputStream getAudioInputStream(final File file, final int bufferSize) throws UnsupportedAudioFileException, IOException {
         if (!file.exists()) throw new FileNotFoundException(file.toString());
-        if (!file.canRead()) throw new IOException("Can't read " + file.toString());
+        if (!file.canRead()) throw new IOException("Can't read " + file);
         return getAudioInputStream(fileToURL(file), bufferSize);
     }
 
