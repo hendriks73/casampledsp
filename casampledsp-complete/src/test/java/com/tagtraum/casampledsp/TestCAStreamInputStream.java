@@ -8,6 +8,7 @@ package com.tagtraum.casampledsp;
 
 import org.junit.Test;
 
+import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.*;
 import java.util.Random;
@@ -28,7 +29,9 @@ public class TestCAStreamInputStream {
         final File file = File.createTempFile("testReadThroughMP3File", filename);
         extractFile(filename, file);
         int bytesRead = 0;
-        try (final CAStreamInputStream in = new CAStreamInputStream(new FileInputStream(file), 0)) {
+        final AudioFileFormat audioFileFormat = new CAAudioFileReader().getAudioFileFormat(file);
+
+        try (final CAAudioInputStream in = new CAAudioInputStream(new CAStreamInputStream(new FileInputStream(file), 0), audioFileFormat.getFormat(), audioFileFormat.getFrameLength())) {
             int justRead;
             final byte[] buf = new byte[1024*8];
             while ((justRead = in.read(buf)) != -1) {
@@ -39,6 +42,7 @@ public class TestCAStreamInputStream {
             file.delete();
         }
         System.out.println("Read " + bytesRead + " bytes.");
+        assertEquals(73352, bytesRead);
     }
 
     @Test

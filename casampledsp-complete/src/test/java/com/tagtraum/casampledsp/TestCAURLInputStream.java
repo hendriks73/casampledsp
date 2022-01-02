@@ -8,6 +8,7 @@ package com.tagtraum.casampledsp;
 
 import org.junit.Test;
 
+import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.*;
 import java.net.URL;
@@ -27,59 +28,72 @@ public class TestCAURLInputStream {
 
     @Test
     public void testReadThroughMP3File() throws IOException, UnsupportedAudioFileException {
-        readThroughFile("testReadThroughMP3File", "test.mp3");
+        final int bytesRead = readThroughFile("testReadThroughMP3File", "test.mp3");
+        assertEquals(73352, bytesRead);
     }
 
     @Test
     public void testReadThroughVBRMP3File() throws IOException, UnsupportedAudioFileException {
-        readThroughFile("testReadThroughVBRMP3File", "test_vbr130.mp3");
+        final int bytesRead = readThroughFile("testReadThroughVBRMP3File", "test_vbr130.mp3");
+        assertEquals(13916, bytesRead);
     }
 
     @Test
     public void testReadThroughCBRMP3File() throws IOException, UnsupportedAudioFileException {
-        readThroughFile("testReadThroughCBRMP3File", "test_cbr256.mp3");
+        final int bytesRead = readThroughFile("testReadThroughCBRMP3File", "test_cbr256.mp3");
+        assertEquals(98638, bytesRead);
     }
 
     @Test
     public void testReadThroughM4AFile() throws IOException, UnsupportedAudioFileException {
-        readThroughFile("testReadThroughM4AFile", "test.m4a");
+        final int bytesRead = readThroughFile("testReadThroughM4AFile", "test.m4a");
+        assertEquals(131126, bytesRead);
     }
 
     @Test
     public void testReadThroughCBRM4AFile() throws IOException, UnsupportedAudioFileException {
-        readThroughFile("testReadThroughCBRM4AFile", "test_cbr.m4a");
+        final int bytesRead = readThroughFile("testReadThroughCBRM4AFile", "test_cbr.m4a");
+        assertEquals(61404, bytesRead);
     }
 
     @Test
     public void testReadThroughVBRM4AFile() throws IOException, UnsupportedAudioFileException {
-        readThroughFile("testReadThroughVBRM4AFile", "test_vbr.m4a");
+        final int bytesRead = readThroughFile("testReadThroughVBRM4AFile", "test_vbr.m4a");
+        assertEquals(156676, bytesRead);
     }
 
     @Test
     public void testReadThrough48kCBRM4AFile() throws IOException, UnsupportedAudioFileException {
-        readThroughFile("testReadThrough48kCBRM4AFile", "test_48k_cbr.m4a");
+        final int bytesRead = readThroughFile("testReadThrough48kCBRM4AFile", "test_48k_cbr.m4a");
+        assertEquals(61238, bytesRead);
     }
 
     @Test
     public void testReadThrough48kVBRM4AFile() throws IOException, UnsupportedAudioFileException {
-        readThroughFile("testReadThrough48kVBRM4AFile", "test_48k_vbr.m4a");
+        final int bytesRead = readThroughFile("testReadThrough48kVBRM4AFile", "test_48k_vbr.m4a");
+        assertEquals(152412, bytesRead);
     }
 
     @Test
     public void testReadThrough48kWavFile() throws IOException, UnsupportedAudioFileException {
-        readThroughFile("testReadThrough48kWavFile", "test_48k.wav");
+        final int bytesRead = readThroughFile("testReadThrough48kWavFile", "test_48k.wav");
+        assertEquals(581800, bytesRead);
     }
 
     @Test
     public void testReadThrough48kAppleLosslessFile() throws IOException, UnsupportedAudioFileException {
-        readThroughFile("testReadThrough48kAppleLosslessFile", "test_48k_alac.m4a");
+        final int bytesRead = readThroughFile("testReadThrough48kAppleLosslessFile", "test_48k_alac.m4a");
+        assertEquals(157045, bytesRead);
     }
 
-    private void readThroughFile(final String prefix, final String filename) throws IOException, UnsupportedAudioFileException {
+    private int readThroughFile(final String prefix, final String filename) throws IOException, UnsupportedAudioFileException {
         final File file = File.createTempFile(prefix, filename);
         extractFile(filename, file);
         int bytesRead = 0;
-        try (final CAURLInputStream in = new CAURLInputStream(file.toURI().toURL())) {
+
+        final AudioFileFormat audioFileFormat = new CAAudioFileReader().getAudioFileFormat(file);
+
+        try (final CAAudioInputStream in = new CAAudioInputStream(new CAURLInputStream(file.toURI().toURL()), audioFileFormat.getFormat(), audioFileFormat.getFrameLength())) {
             int justRead;
             final byte[] buf = new byte[1024];
             while ((justRead = in.read(buf)) != -1) {
@@ -90,6 +104,7 @@ public class TestCAURLInputStream {
             file.delete();
         }
         System.out.println("Read " + bytesRead + " bytes.");
+        return bytesRead;
     }
 
     @Test

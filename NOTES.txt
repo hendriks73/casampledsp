@@ -1,6 +1,7 @@
 0.9.26
 
 Fixed rounding error when computing duration.
+Fixed frame length in AudioInputStream.
 Support seeking even after end of file has been reached.
 
 

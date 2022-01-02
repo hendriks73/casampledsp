@@ -61,7 +61,7 @@ public class TestCAAudioFileReader {
 
             assertEquals("m4a", fileFormat.getType().getExtension());
             assertEquals(file.length(), fileFormat.getByteLength());
-            assertEquals(135168, fileFormat.getFrameLength());
+            assertEquals(33, fileFormat.getFrameLength());
 
             final AudioFormat format = fileFormat.getFormat();
             assertEquals(2, format.getChannels());
@@ -86,7 +86,7 @@ public class TestCAAudioFileReader {
 
             assertEquals("mp3", fileFormat.getType().getExtension());
             assertEquals(file.length(), fileFormat.getByteLength());
-            assertEquals(134784, fileFormat.getFrameLength());
+            assertEquals(117, fileFormat.getFrameLength());
 
             final AudioFormat format = fileFormat.getFormat();
             assertEquals(2, format.getChannels());
@@ -94,6 +94,31 @@ public class TestCAAudioFileReader {
             assertNotNull(duration);
             assertEquals(3056326, (long)duration);
             assertEquals(38.28125f, format.getFrameRate(), 0.001f);
+        } finally {
+            file.delete();
+        }
+    }
+
+    @Test
+    public void testGetAudioFileFormatWavFile() throws IOException, UnsupportedAudioFileException {
+        // first copy the file from resources to actual location in temp
+        final String filename = "test.wav";
+        final File file = File.createTempFile("testGetAudioFileFormatWavFile", filename);
+        extractFile(filename, file);
+        try {
+            final AudioFileFormat fileFormat = new CAAudioFileReader().getAudioFileFormat(file);
+            System.out.println(fileFormat);
+
+            assertEquals("wav", fileFormat.getType().getExtension());
+            assertEquals(file.length(), fileFormat.getByteLength());
+            assertEquals(133632, fileFormat.getFrameLength());
+
+            final AudioFormat format = fileFormat.getFormat();
+            assertEquals(2, format.getChannels());
+            final Long duration = (Long)fileFormat.getProperty("duration");
+            assertNotNull(duration);
+            assertEquals(3030204, (long)duration);
+            assertEquals(44100f, format.getFrameRate(), 0.001f);
         } finally {
             file.delete();
         }
@@ -111,7 +136,7 @@ public class TestCAAudioFileReader {
 
             assertEquals("mp3", fileFormat.getType().getExtension());
             assertEquals(file.length(), fileFormat.getByteLength());
-            assertEquals(134784, fileFormat.getFrameLength());
+            assertEquals(117, fileFormat.getFrameLength());
 
             final AudioFormat format = fileFormat.getFormat();
             assertEquals(2, format.getChannels());

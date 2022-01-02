@@ -113,12 +113,11 @@ JNIEXPORT jobject JNICALL Java_com_tagtraum_casampledsp_CAAudioFileReader_intGet
         throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to obtain audio data packet count");
         goto bail;
     }
-    if (inputFormat.mFramesPerPacket) {
-        frameLength = inputFormat.mFramesPerPacket * dataPacketCount;
-    }
-    durationInMicroSeconds = (jlong)((frameLength * 1000L * 1000L) / inputFormat.mSampleRate);
-    frameRate = (jfloat)(dataPacketCount*inputFormat.mSampleRate/frameLength);
-	
+    // frameLength = number of frames in javax.sound.sampled
+    frameLength = dataPacketCount;
+    frameRate = (jfloat)(inputFormat.mSampleRate/inputFormat.mFramesPerPacket);
+    durationInMicroSeconds = (jlong)((inputFormat.mFramesPerPacket * dataPacketCount * 1000L * 1000L) / inputFormat.mSampleRate);
+
 	if (inputFormat.mBytesPerPacket && inputFormat.mFramesPerPacket) {
 		bitRate = (jint)(bitsPerByte * (Float64)inputFormat.mBytesPerPacket * inputFormat.mSampleRate / (Float64)inputFormat.mFramesPerPacket);
         vbr = JNI_FALSE;
@@ -128,6 +127,8 @@ JNIEXPORT jobject JNICALL Java_com_tagtraum_casampledsp_CAAudioFileReader_intGet
     }   
     bigEndian = (inputFormat.mFormatID == kAudioFormatLinearPCM) && ((kAudioFormatFlagIsBigEndian & inputFormat.mFormatFlags) == kAudioFormatFlagIsBigEndian);
 #ifdef DEBUG
+    fprintf(stderr, "dataPackets: %llu\n", dataPacketCount);
+    fprintf(stderr, "Frames/Pckt: %llu\n", inputFormat.mFramesPerPacket);
     fprintf(stderr, "sampleRate : %f\n", inputFormat.mSampleRate);
     fprintf(stderr, "sampleSize : %i\n", inputFormat.mBitsPerChannel);
     fprintf(stderr, "channels   : %i\n", inputFormat.mChannelsPerFrame);
@@ -242,11 +243,16 @@ JNIEXPORT jobject JNICALL Java_com_tagtraum_casampledsp_CAAudioFileReader_intGet
 
     size = sizeof(dataPacketCount);
     res = AudioFileStreamGetProperty(stream, kAudioFileStreamProperty_AudioDataPacketCount, &size, &dataPacketCount);
-    if (!res && inputFormat.mFramesPerPacket) {
-        frameLength = inputFormat.mFramesPerPacket * dataPacketCount;
-        durationInMicroSeconds = (jlong)((frameLength * 1000L * 1000L) / inputFormat.mSampleRate);
+    if (!res) {
+        frameLength = dataPacketCount;
+        durationInMicroSeconds = (jlong)((inputFormat.mFramesPerPacket * dataPacketCount * 1000L * 1000L) / inputFormat.mSampleRate);
         frameRate = (jfloat)(dataPacketCount*inputFormat.mSampleRate/frameLength);
     }
+//    if (!res && inputFormat.mFramesPerPacket) {
+//        frameLength = inputFormat.mFramesPerPacket * dataPacketCount;
+//        durationInMicroSeconds = (jlong)((frameLength * 1000L * 1000L) / inputFormat.mSampleRate);
+//        frameRate = (jfloat)(dataPacketCount*inputFormat.mSampleRate/frameLength);
+//    }
     bigEndian = (inputFormat.mFormatID == kAudioFormatLinearPCM) && ((kAudioFormatFlagIsBigEndian & inputFormat.mFormatFlags) == kAudioFormatFlagIsBigEndian);
     audioFormat = create_CoreAudioAudioFileFormat_object(env, NULL,
                                                          inputFormat.mFormatID,

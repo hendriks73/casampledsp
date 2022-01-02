@@ -62,7 +62,8 @@ public class CAAudioFileFormat extends AudioFileFormat {
     private final HashMap<String, Object> properties;
 
     public CAAudioFileFormat(final String url, final int dataFormat,
-                             final float sampleRate, final int sampleSize, final int channels, final int packetSize,
+                             final float sampleRate, final int sampleSize,
+                             final int channels, final int packetSize,
                              final float frameRate,
                              final int frameLength,
                              final boolean bigEndian, final long durationInMicroSeconds,
@@ -70,18 +71,17 @@ public class CAAudioFileFormat extends AudioFileFormat {
             throws UnsupportedAudioFileException {
 
         super(getAudioFileFormatType(url, dataFormat), getLength(url),
-                new CAAudioFormat(dataFormat, sampleRate, sampleSize, channels, packetSize,
-                        determineFrameRate(dataFormat, sampleRate, frameRate), bigEndian, bitRate, vbr),
-                sampleRate * durationInMicroSeconds < 0 ? AudioSystem.NOT_SPECIFIED : getFrameLength(sampleRate, durationInMicroSeconds)
+                new CAAudioFormat(dataFormat, sampleRate,
+                    sampleSize > 0 ? sampleSize : AudioSystem.NOT_SPECIFIED,
+                    channels > 0 ? channels : AudioSystem.NOT_SPECIFIED,
+                    packetSize > 0 ? packetSize : AudioSystem.NOT_SPECIFIED,
+                    determineFrameRate(dataFormat, sampleRate, frameRate), bigEndian, bitRate, vbr),
+            frameLength > 0 ? frameLength : AudioSystem.NOT_SPECIFIED
         );
         this.properties = new HashMap<>();
         if (durationInMicroSeconds > 0) {
             this.properties.put("duration", durationInMicroSeconds);
         }
-    }
-
-    private static int getFrameLength(final float sampleRate, final long durationInMicroSeconds) {
-        return (int) Math.ceil((sampleRate * durationInMicroSeconds) / 1000.0 / 1000.0);
     }
 
     private static int getLength(final String urlString) {
@@ -97,7 +97,7 @@ public class CAAudioFileFormat extends AudioFileFormat {
     }
 
     private static float determineFrameRate(final int dataFormat, final float sampleRate, final float frameRate) {
-        if (frameRate != AudioSystem.NOT_SPECIFIED) return frameRate;
+        if (frameRate > 0) return frameRate;
         // frame rate and sample rate are equal when we have a PCM, A-law or ?-law data.
         if (dataFormat == CAAudioFormat.CAEncoding.ALAW.getDataFormat()
                 || dataFormat == CAAudioFormat.CAEncoding.ULAW.getDataFormat()
