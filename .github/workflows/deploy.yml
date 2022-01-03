@@ -23,9 +23,10 @@ jobs:
         run: brew install doxygen
 
       - name: Set up publication to Maven Central
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v2
         with:
-          java-version: 1.8
+          distribution: 'zulu'
+          java-version: '8'
           architecture: x64
           server-id: ossrh
           server-username: MAVEN_USERNAME
@@ -47,9 +48,10 @@ jobs:
 
       - id: deploy-site
         name: Setup deployment to tagtraum site
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v2
         with:
-          java-version: 1.8
+          distribution: 'zulu'
+          java-version: '8'
           architecture: x64
           server-id: tagtraum-site
           server-username: MAVEN_USERNAME
@@ -60,6 +62,7 @@ jobs:
           MAVEN_USERNAME: ${{ secrets.SITE_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.SITE_TOKEN }}
         run: |
+          sed -i.bak 's@tagtraum-site</id>@tagtraum-site</id><configuration><StrictHostKeyChecking>no</StrictHostKeyChecking></configuration><filePermissions>775</filePermissions><directoryPermissions>775</directoryPermissions>@' $HOME/.m2/settings.xml
           mvn \
             --no-transfer-progress \
             --batch-mode \
