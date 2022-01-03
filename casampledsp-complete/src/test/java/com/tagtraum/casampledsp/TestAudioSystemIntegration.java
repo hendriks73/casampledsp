@@ -71,6 +71,34 @@ public class TestAudioSystemIntegration {
         assertEquals(expectedBytes, bytesRead);
     }
 
+    @Test
+    public void testAudioFileReader3() throws IOException, UnsupportedAudioFileException {
+        final String filename = "test.mp3";
+        final File file = File.createTempFile("testAudioFileReader", filename);
+        extractFile(filename, file);
+
+        final AudioFileFormat audioFileFormat = AudioSystem.getAudioFileFormat(file);
+        final long duration = (Long)audioFileFormat.getProperty("duration");
+        final AudioFormat sourceFormat = audioFileFormat.getFormat();
+        final AudioFormat targetFormat = new AudioFormat(PCM_SIGNED, 44100f, 16, 2, 2, 44100f, true);
+        // calculate expected bytes based on duration and target format
+        final int expectedBytes = (int)Math.ceil(sourceFormat.getSampleRate() * duration / 1000L / 1000L * targetFormat.getChannels() * targetFormat.getFrameSize());
+        int bytesRead = 0;
+        try (final AudioInputStream mp3Stream = AudioSystem.getAudioInputStream(file)) {
+            final AudioInputStream in = AudioSystem.getAudioInputStream(targetFormat, mp3Stream);
+            int justRead;
+            final byte[] buf = new byte[1024];
+            while ((justRead = in.read(buf)) != -1) {
+                assertTrue(justRead > 0);
+                bytesRead += justRead;
+            }
+        } finally {
+            file.delete();
+        }
+        System.out.println("Bytes read: " + bytesRead);
+        assertEquals(expectedBytes, bytesRead);
+    }
+
     private void extractFile(final String filename, final File file) throws IOException {
         try (final InputStream in = getClass().getResourceAsStream(filename);
              final OutputStream out = new FileOutputStream(file)) {

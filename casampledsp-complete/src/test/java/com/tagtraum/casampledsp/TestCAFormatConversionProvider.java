@@ -63,4 +63,16 @@ public class TestCAFormatConversionProvider {
         assertTrue(new CAFormatConversionProvider().isConversionSupported(format, caAudioFormat));
     }
 
+    @Test
+    public void testIsConversionSupportedEncodingCAFormat() {
+        final CAAudioFormat caAudioFormat = new CAAudioFormat(CAAudioFormat.CAEncoding.WAVE_BE.getDataFormat(), 44100f, 16, 2, 0, 44100f, true, 0, true);
+        assertTrue(new CAFormatConversionProvider().isConversionSupported(AudioFormat.Encoding.PCM_SIGNED, caAudioFormat));
+    }
+
+    @Test
+    public void testIsConversionSupportedEncodingNonCAFormat() {
+        final AudioFormat format = new AudioFormat(44100, 16, 2, true, true);
+        assertFalse(new CAFormatConversionProvider().isConversionSupported(AudioFormat.Encoding.PCM_SIGNED, format));
+    }
+
 }

@@ -209,6 +209,52 @@ public class TestCAAudioFileReader {
     }
 
     @Test
+    public void testNonExistingFile() throws IOException, UnsupportedAudioFileException {
+        try {
+            new CAAudioFileReader().getAudioFileFormat(new File("some_file_fgfgfgfg.wav"));
+            fail("Expected FileNotFoundException");
+        } catch (FileNotFoundException e) {
+            // expected this
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testOpenNonExistingFile() throws IOException, UnsupportedAudioFileException {
+        try {
+            new CAAudioFileReader().getAudioInputStream(new File("some_file_fgfgfgfg.wav"));
+            fail("Expected FileNotFoundException");
+        } catch (FileNotFoundException e) {
+            // expected this
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testBadURL() throws IOException {
+        try {
+            new CAAudioFileReader().getAudioFileFormat(new URL("https://www.cnn.com/"));
+            fail("Expected FileNotFoundException");
+        } catch (UnsupportedAudioFileException e) {
+            // expected this
+            e.printStackTrace();
+            assertTrue(e.toString().endsWith("(typ?)"));
+        }
+    }
+
+    @Test
+    public void testOpenBadURL() throws IOException {
+        try {
+            new CAAudioFileReader().getAudioInputStream(new URL("https://www.cnn.com/"));
+            fail("Expected FileNotFoundException");
+        } catch (UnsupportedAudioFileException e) {
+            // expected this
+            e.printStackTrace();
+            assertTrue(e.toString().endsWith("(typ?)"));
+        }
+    }
+
+    @Test
     public void testFileWithPunctuationToURL() throws MalformedURLException {
         final File file = new File("/someDir/;:&=+@[]?/name.txt");
         final URL url = CAAudioFileReader.fileToURL(file);
