@@ -80,9 +80,9 @@ public class TestAudioSystemIntegration {
         final AudioFileFormat audioFileFormat = AudioSystem.getAudioFileFormat(file);
         final long duration = (Long)audioFileFormat.getProperty("duration");
         final AudioFormat sourceFormat = audioFileFormat.getFormat();
-        final AudioFormat targetFormat = new AudioFormat(PCM_SIGNED, 44100f, 16, 2, 2, 44100f, true);
+        final AudioFormat targetFormat = new AudioFormat(PCM_SIGNED, 44100f, 16, 2, 4, 44100f, sourceFormat.isBigEndian());
         // calculate expected bytes based on duration and target format
-        final int expectedBytes = (int)Math.ceil(sourceFormat.getSampleRate() * duration / 1000L / 1000L * targetFormat.getChannels() * targetFormat.getFrameSize());
+        final int expectedBytes = (int)Math.ceil(sourceFormat.getSampleRate() * duration / 1000L / 1000L * targetFormat.getFrameSize());
         int bytesRead = 0;
         try (final AudioInputStream mp3Stream = AudioSystem.getAudioInputStream(file)) {
             final AudioInputStream in = AudioSystem.getAudioInputStream(targetFormat, mp3Stream);
