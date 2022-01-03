@@ -84,3 +84,9 @@ So all in all, something like the following might work for you:
         -Dmmacosx-version-min=10.7 \
         -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/ \
         clean install
+
+
+Release Notes
+-------------
+
+You can find the release notes/history [here](NOTES.md).
