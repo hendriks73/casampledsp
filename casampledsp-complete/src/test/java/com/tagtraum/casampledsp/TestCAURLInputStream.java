@@ -33,6 +33,12 @@ public class TestCAURLInputStream {
     }
 
     @Test
+    public void testSkipThroughMP3File() throws IOException, UnsupportedAudioFileException {
+        final int bytesSkipped = skipThroughFile("testSkipThroughMP3File", "test.mp3");
+        assertEquals(73352, bytesSkipped);
+    }
+
+    @Test
     public void testReadThroughVBRMP3File() throws IOException, UnsupportedAudioFileException {
         final int bytesRead = readThroughFile("testReadThroughVBRMP3File", "test_vbr130.mp3");
         assertEquals(13916, bytesRead);
@@ -81,6 +87,12 @@ public class TestCAURLInputStream {
     }
 
     @Test
+    public void testSkipThrough48kWavFile() throws IOException, UnsupportedAudioFileException {
+        final int bytesSkipped = skipThroughFile("testSkipThrough48kWavFile", "test_48k.wav");
+        assertEquals(581800, bytesSkipped);
+    }
+
+    @Test
     public void testReadThrough48kAppleLosslessFile() throws IOException, UnsupportedAudioFileException {
         final int bytesRead = readThroughFile("testReadThrough48kAppleLosslessFile", "test_48k_alac.m4a");
         assertEquals(157045, bytesRead);
@@ -105,6 +117,29 @@ public class TestCAURLInputStream {
         }
         System.out.println("Read " + bytesRead + " bytes.");
         return bytesRead;
+    }
+
+    private int skipThroughFile(final String prefix, final String filename) throws IOException, UnsupportedAudioFileException {
+        final File file = File.createTempFile(prefix, filename);
+        extractFile(filename, file);
+        int bytesSkipped = 0;
+
+        final AudioFileFormat audioFileFormat = new CAAudioFileReader().getAudioFileFormat(file);
+        long bytesToSkip = 1024 * 32;
+        if (audioFileFormat.getFormat().getFrameSize() > 0) {
+            bytesToSkip = audioFileFormat.getFormat().getFrameSize() * 100L;
+        }
+
+        try (final CAAudioInputStream in = new CAAudioInputStream(new CAURLInputStream(file.toURI().toURL()), audioFileFormat.getFormat(), audioFileFormat.getFrameLength())) {
+            long justSkipped;
+            while ((justSkipped = in.skip(bytesToSkip)) != 0) {
+                bytesSkipped += justSkipped;
+            }
+        } finally {
+            file.delete();
+        }
+        System.out.println("Skipped " + bytesSkipped + " bytes.");
+        return bytesSkipped;
     }
 
     @Test
