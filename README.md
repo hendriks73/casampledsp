@@ -12,11 +12,9 @@ service provider interfaces based on Apple's Core Audio library, supporting all 
 It is part of the [SampledSP](https://www.tagtraum.com/sampledsp.html) collection of `javax.sound.sampled`
 libraries.
 
-Its main purpose is to decode audio files or streams to signed linear pcm.
+Its main purpose is to decode audio files or streams to signed
+linear [PCM](https://en.wikipedia.org/wiki/Pulse-code_modulation).
 
-This library comes with absolutely no support, warranty etc. you name it.
-
-Binaries and more info can be found at its [tagtraum home](https://www.tagtraum.com/casampledsp/).
 
 Usage Example
 -------------
@@ -86,7 +84,3 @@ So all in all, something like the following might work for you:
         -Dmmacosx-version-min=10.7 \
         -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/ \
         clean install
-
-Enjoy.
-
-https://www.tagtraum.com/casampledsp/
