@@ -1,3 +1,8 @@
+- 0.9.28
+
+  - Added signature for native macOS libs
+
+
 - 0.9.27
 
   - Updated to `actions/setup-java@v2`.
