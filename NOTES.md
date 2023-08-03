@@ -1,4 +1,8 @@
-- 0.9.28
+- 0.9.30
+   - Updated Maven project report skin (fixing the *Fork Me*-banner).
+
+
+- 0.9.29
 
   - Added signature for native macOS libs
 

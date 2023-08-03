@@ -21,6 +21,7 @@
 
     <properties>
         <arch>x86_64</arch>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
 
     <build>
