@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.tagtraum</groupId>
         <artifactId>casampledsp-parent</artifactId>
-        <version>0.9.29</version>
+        <version>0.9.30</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>casampledsp-aarch64</artifactId>
@@ -21,6 +21,7 @@
 
     <properties>
         <arch>arm64</arch>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
 
     <build>
@@ -113,6 +114,7 @@
                                         <exec executable="/usr/bin/codesign">
                                             <arg value="-vvv" />
                                             <arg value="--force" />
+                                            <arg value="--timestamp" />
                                             <arg value="--sign" />
                                             <arg value="Developer ID Application: tagtraum industries incorporated (MW4Y4W5V4P)" />
                                             <arg value="${project.build.directory}/${project.artifactId}.dylib" />
