@@ -81,8 +81,8 @@ public class CAStreamInputStream extends CANativePeerInputStream {
      *
      * @param time time
      * @param timeUnit time unit
-     * @throws UnsupportedOperationException
-     * @throws IOException
+     * @throws UnsupportedOperationException always
+     * @throws IOException never
      */
     @Override
     public void seek(final long time, final TimeUnit timeUnit) throws UnsupportedOperationException, IOException {
