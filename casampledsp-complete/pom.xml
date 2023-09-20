@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.tagtraum</groupId>
         <artifactId>casampledsp-parent</artifactId>
-        <version>0.9.30</version>
+        <version>0.9.31</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>casampledsp-complete</artifactId>
@@ -149,7 +149,7 @@
                     </execution>
                 </executions>
             </plugin>
-
+            
         </plugins>
     </build>
 

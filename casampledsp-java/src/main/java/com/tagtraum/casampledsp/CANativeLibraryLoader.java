@@ -24,6 +24,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -106,8 +107,11 @@ public final class CANativeLibraryLoader {
     public static synchronized void loadLibrary(final String libName, final Class<?> baseClass) {
         final String key = libName + "|" + baseClass.getName();
         if (LOADED.contains(key)) return;
-        final String packagedNativeLib = libName + "-" + VERSION + NATIVE_LIBRARY_EXTENSION;
-        final File extractedNativeLib = new File(System.getProperty("java.io.tmpdir") + "/" + packagedNativeLib);
+        // in the jar, we already know the version, so no need there...
+        final String packagedNativeLib = libName + NATIVE_LIBRARY_EXTENSION;
+        // but extracted, we want to keep things separate
+        final String extractedNativeLibFilename = libName +  "-" + VERSION + NATIVE_LIBRARY_EXTENSION;
+        final File extractedNativeLib = new File(System.getProperty("java.io.tmpdir") + "/" + extractedNativeLibFilename);
         if (!extractedNativeLib.exists() || extractedNativeLib.toString().contains("SNAPSHOT")) {
             extractResourceToFile(baseClass, "/" + packagedNativeLib, extractedNativeLib);
         }
@@ -145,7 +149,7 @@ public final class CANativeLibraryLoader {
     private static void extractResourceToFile(final Class<?> baseClass, final String sourceResource, final File targetFile) {
         try (final InputStream in = baseClass.getResourceAsStream(sourceResource)) {
             if (in != null) {
-                try (final OutputStream out = new FileOutputStream(targetFile)) {
+                try (final OutputStream out = Files.newOutputStream(targetFile.toPath())) {
                     final byte[] buf = new byte[1024 * 8];
                     int justRead;
                     while ((justRead = in.read(buf)) != -1) {

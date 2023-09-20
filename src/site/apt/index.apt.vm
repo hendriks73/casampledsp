@@ -20,7 +20,7 @@ Introduction
 * Getting Started
 
     The easiest way to use <CASampledSP> (other than simply using the
-    {{{https://repo1.maven.org/maven2/com/tagtraum/casampledsp-complete/${projectversion}/casampledsp-complete-${projectversion}.jar}jar}}
+    {{{https://repo1.maven.org/maven2/com/tagtraum/casampledsp-complete/${projectversion}/casampledsp-complete-${projectversion}.jar}jar}})
     is to start a {{{https://maven.apache.org/}Maven}} project and introduce a <CASampledSP> dependency.
 
     To do so, add something like this to the dependencies section of your pom:

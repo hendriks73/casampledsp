@@ -1,3 +1,8 @@
+- 0.9.31
+  - Fixed native library loader.
+  - Updated maven plugins.
+ 
+ 
 - 0.9.30
    - Updated Maven project report skin (fixing the *Fork Me*-banner).
 
