@@ -9,7 +9,12 @@ on:
     branches:
       - dev
       - main
-
+  # Run this every Sunday morning at 4am,
+  # so that we at least become aware, if/when
+  # it breaks due to env/dependency updates.
+  schedule:
+    - cron: "0 4 * * 0"
+  workflow_dispatch:
 
 jobs:
   build:
@@ -17,7 +22,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Set up JDK 1.8
         uses: actions/setup-java@v2
         with:
@@ -31,13 +36,13 @@ jobs:
       - name: Build/test code with Maven
         run: mvn -B cobertura:cobertura install --file pom.xml
       - run: mkdir staging && cp casampledsp-complete/target/*.jar staging
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: Package
           path: staging
 
       - name: Upload CodeCov Report
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
         if: ${{ always() }}
