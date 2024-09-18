@@ -1,3 +1,7 @@
+- 0.9.32
+  - Updated several GH actions.
+
+ 
 - 0.9.31
   - Fixed native library loader.
   - Updated maven plugins.
