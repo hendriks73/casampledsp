@@ -77,6 +77,7 @@ static OSStatus CACodecInputStream_ComplexInputDataProc (
     if (outDataPacketDescription != NULL) {
         *outDataPacketDescription = acio->sourceAudioIO->pktDescs;
     }
+    *ioNumberDataPackets = acio->sourceAudioIO->pos - acio->sourceAudioIO -> lastPos;
     
 bail:
     if (res) {
@@ -143,7 +144,7 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_fillNati
     // we already wrote to the buffer, now we still need to
     // set new bytebuffer limit and position to 0.
     acio->lastPos = acio->pos; 
-    acio->pos += ioOutputDataPacketSize; 
+    acio->pos += ioOutputDataPacketSize;
     if (acio->srcFormat.mBytesPerPacket != 0) {
         limit = ioOutputDataPacketSize*acio->srcFormat.mBytesPerPacket;
     }
