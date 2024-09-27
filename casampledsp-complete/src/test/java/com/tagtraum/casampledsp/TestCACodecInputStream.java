@@ -469,14 +469,14 @@ public class TestCACodecInputStream {
         final File file = File.createTempFile("testReadConvertWaveStreamToPCM", filename);
         extractFile(filename, file);
         int bytesRead = 0;
-        AudioInputStream mp3Stream = null;
+        AudioInputStream wavStream = null;
         CACodecInputStream pcmStream = null;
         try {
-            mp3Stream = new CAAudioFileReader().getAudioInputStream(new BufferedInputStream(new FileInputStream(file)));
+            wavStream = new CAAudioFileReader().getAudioInputStream(new BufferedInputStream(new FileInputStream(file)));
             final AudioFormat targetFormat = new AudioFormat(CAAudioFormat.CAEncoding.PCM_SIGNED, 44100, 16, 2, 4, 44100, false);
-            System.err.println("wave: " + mp3Stream.getFormat());
+            System.err.println("wave: " + wavStream.getFormat());
             System.err.println("pcm: " + targetFormat);
-            pcmStream = new CACodecInputStream(targetFormat, (CAAudioInputStream) mp3Stream);
+            pcmStream = new CACodecInputStream(targetFormat, (CAAudioInputStream) wavStream);
 
             //AudioSystem.write(new CAAudioInputStream(pcmStream, targetFormat, -1), AudioFileFormat.Type.WAVE, new File("writtentest.wav"));
             int justRead;
@@ -495,9 +495,9 @@ public class TestCACodecInputStream {
                     e.printStackTrace();
                 }
             }
-            if (mp3Stream != null) {
+            if (wavStream != null) {
                 try {
-                    mp3Stream.close();
+                    wavStream.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

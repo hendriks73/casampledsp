@@ -1,3 +1,8 @@
+- 0.9.32
+  - Updated several GH actions.
+  - Fixed packet count for `CACodecInputStream` for macOS 15/Sequioa
+
+ 
 - 0.9.31
   - Fixed native library loader.
   - Updated maven plugins.

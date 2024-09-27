@@ -304,9 +304,14 @@ public final class CANativeLibraryLoader {
         try {
             final Properties properties = new Properties();
             properties.load(CANativeLibraryLoader.class.getResourceAsStream("project.properties"));
-            return properties.getProperty("version", "unknown");
+            final String p = properties.getProperty("version", "SNAPSHOT");
+            if (p.equals("${project.version}")) {
+                return "SNAPSHOT";
+            } else {
+                return p;
+            }
         } catch (Exception e) {
-            return "unknown";
+            return "SNAPSHOT";
         }
     }
 
