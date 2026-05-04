@@ -23,31 +23,25 @@
 #include "com_tagtraum_casampledsp_CAURLInputStream.h"
 #include "CAUtils.h"
 
-static jfieldID nativeBufferFID = NULL;
-static jmethodID rewindMID = NULL;
-static jmethodID limitMID = NULL;
+static jfieldID nativeBufferFID = nullptr;
+static jmethodID rewindMID      = nullptr;
+static jmethodID limitMID       = nullptr;
 
 /**
  * Init static method and field ids for Java methods/fields, if we don't have them already.
- *
- * @param env JNIEnv
  */
 static void init_ids(JNIEnv *env, jobject stream) {
-    if (nativeBufferFID == NULL || rewindMID == NULL || limitMID == NULL) {
+    if (nativeBufferFID == nullptr || rewindMID == nullptr || limitMID == nullptr) {
         nativeBufferFID = env->GetFieldID(env->GetObjectClass(stream), "nativeBuffer", "Ljava/nio/ByteBuffer;");
         jclass bufferClass = env->FindClass("java/nio/Buffer");
         rewindMID = env->GetMethodID(bufferClass, "rewind", "()Ljava/nio/Buffer;");
-        limitMID = env->GetMethodID(bufferClass, "limit", "(I)Ljava/nio/Buffer;");
+        limitMID  = env->GetMethodID(bufferClass, "limit",  "(I)Ljava/nio/Buffer;");
     }
 }
 
 
 /**
  * Callback to fill the native buffer.
- *
- * @param env JNI env
- * @param stream calling Java stream
- * @param afioPtr pointer to CAAudioFileIO
  */
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_fillNativeBuffer(JNIEnv *env, jobject stream, jlong afioPtr) {
 #ifdef DEBUG
@@ -55,25 +49,24 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_fillNative
 #endif
 
     int res = 0;
-    jobject byteBuffer = NULL;
-    CAAudioFileIO *afio = (CAAudioFileIO*)afioPtr;
+    jobject byteBuffer = nullptr;
+    CAAudioFileIO *afio = reinterpret_cast<CAAudioFileIO*>(afioPtr);
     UInt32 ioNumberDataPackets;
     UInt32 outNumBytes = 0;
 
     init_ids(env, stream);
 
-    // get java-managed byte buffer reference
-    byteBuffer = env->GetObjectField(stream, nativeBufferFID);    
-    if (byteBuffer == NULL) {
+    byteBuffer = env->GetObjectField(stream, nativeBufferFID);
+    if (byteBuffer == nullptr) {
         throwIOExceptionIfError(env, 1, "Failed to get native buffer");
         goto bail;
     }
 
     // find out buffer's capacity
-    outNumBytes = env->GetDirectBufferCapacity(byteBuffer);
+    outNumBytes      = static_cast<UInt32>(env->GetDirectBufferCapacity(byteBuffer));
     // get pointer to our java managed bytebuffer
-    afio->srcBuffer = (char *)env->GetDirectBufferAddress(byteBuffer);
-    if (afio->srcBuffer == NULL) {
+    afio->srcBuffer  = static_cast<char*>(env->GetDirectBufferAddress(byteBuffer));
+    if (afio->srcBuffer == nullptr) {
         throwIOExceptionIfError(env, 1, "Failed to get address for native buffer");
         goto bail;
     }
@@ -82,23 +75,22 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_fillNative
     ioNumberDataPackets = afio->numPacketsPerRead;
 
     // do the actual read from the file
-	res = AudioFileReadPacketData(afio->afid, false, &outNumBytes, afio->pktDescs,
-                                        afio->pos, &ioNumberDataPackets, afio->srcBuffer);
-
+    res = AudioFileReadPacketData(afio->afid, false, &outNumBytes, afio->pktDescs,
+                                  afio->pos, &ioNumberDataPackets, afio->srcBuffer);
     if (res) {
         throwIOExceptionIfError(env, res, "Failed to read packet data from file");
-		goto bail;
-	}
-    
+        goto bail;
+    }
+
     // advance input file packet position
-    afio->lastPos = afio->pos;
-	afio->pos += ioNumberDataPackets;
+    afio->lastPos      = afio->pos;
+    afio->pos         += ioNumberDataPackets;
     afio->srcBufferSize = outNumBytes;
 
     // we already wrote to the buffer, now we still need to
     // set new bytebuffer limit and position to 0.
     env->CallObjectMethod(byteBuffer, rewindMID);
-    env->CallObjectMethod(byteBuffer, limitMID, outNumBytes);
+    env->CallObjectMethod(byteBuffer, limitMID, static_cast<jint>(outNumBytes));
 
 bail:
     return;
@@ -107,148 +99,123 @@ bail:
 /**
  * Opens the given URL via AudioFileOpenURL.
  *
- * @param env JNI env
- * @param stream calling Java stream
- * @param url URL to open
- * @return pointer to the underlying CAAudioFileIO struct
+ * @param urlBytes URL as UTF-8 bytes (from Java: url.toString().getBytes(UTF_8))
+ * @return pointer to the underlying CAAudioFileIO struct, or 0 on error
  */
-JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_open(JNIEnv *env, jobject stream, jstring url, jint bufferSize) {
+JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_open(JNIEnv *env, jobject stream, jbyteArray urlBytes, jint bufferSize) {
     int res = 0;
-	CFURLRef inputURLRef;
-    CAAudioFileIO *afio = new CAAudioFileIO;
+    CFURLRef inputURLRef = nullptr;
+    CAAudioFileIO *afio  = new CAAudioFileIO{};   // zero-initializes all fields
     UInt32 size;
-    
-	afio->srcBufferSize = bufferSize;
-	afio->pos = 0;
-	afio->afid = NULL;
-    afio->pktDescs = NULL;
-    afio->cookie = NULL;
-    afio->cookieSize = 0;
-    afio->frameOffset = 0;
+    jsize  urlLen = env->GetArrayLength(urlBytes);
+    jbyte *urlBuf = env->GetByteArrayElements(urlBytes, nullptr);
+    char  *urlStr = static_cast<char*>(malloc(urlLen + 1));
+    memcpy(urlStr, urlBuf, urlLen);
+    urlStr[urlLen] = '\0';
+    env->ReleaseByteArrayElements(urlBytes, urlBuf, JNI_ABORT);
+
+    afio->srcBufferSize    = static_cast<UInt32>(bufferSize);
     afio->numPacketsPerRead = 1;
 
-    // open file
-    ca_create_url_ref(env, url, inputURLRef);
-    res = AudioFileOpenURL(inputURLRef, 0x01, 0, &afio->afid); // 0x01 = read only
+    inputURLRef = ca_url_ref_from_utf8(urlStr, urlLen);
+    res = AudioFileOpenURL(inputURLRef, kAudioFileReadPermission, 0, &afio->afid);
     if (res) {
         if (res == fnfErr || res == kAudioFileUnspecifiedError) {
-            throwFileNotFoundExceptionIfError(env, res, env->GetStringUTFChars(url, NULL));
+            throwFileNotFoundExceptionIfError(env, res, urlStr);
         } else {
             throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to open audio file");
         }
         goto bail;
     }
-    
+
     // get the source file format
-	size = sizeof(afio->srcFormat);
-	res = AudioFileGetProperty(afio->afid, kAudioFilePropertyDataFormat, &size, &afio->srcFormat);
+    size = sizeof(afio->srcFormat);
+    res  = AudioFileGetProperty(afio->afid, kAudioFilePropertyDataFormat, &size, &afio->srcFormat);
     if (res) {
         throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to obtain format for audio file");
         goto bail;
     }
-    
+
     // find out how many packets fit into the buffer
     if (!afio->srcFormat.mBytesPerPacket) {
 #ifdef DEBUG
         fprintf(stderr, "VBR\n");
 #endif
-        // format is VBR, so we need to get max size per packet
-		size = sizeof(afio->srcSizePerPacket);
-		res = AudioFileGetProperty(afio->afid, kAudioFilePropertyPacketSizeUpperBound, &size, &afio->srcSizePerPacket);
+        size = sizeof(afio->srcSizePerPacket);
+        res  = AudioFileGetProperty(afio->afid, kAudioFilePropertyPacketSizeUpperBound, &size, &afio->srcSizePerPacket);
         if (res) {
             throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to obtain packet size upper bound");
             goto bail;
         }
         if (afio->srcSizePerPacket != 0) {
-    		afio->numPacketsPerRead = afio->srcBufferSize / afio->srcSizePerPacket;
+            afio->numPacketsPerRead = afio->srcBufferSize / afio->srcSizePerPacket;
         }
 #ifdef DEBUG
-        else {
-            fprintf(stderr, "VBR: srcSizePerPacket == 0!!\n");
-        }
+        else { fprintf(stderr, "VBR: srcSizePerPacket == 0!!\n"); }
 #endif
-		afio->pktDescs = new AudioStreamPacketDescription[afio->numPacketsPerRead];
-	}
-	else {
+        afio->pktDescs = new AudioStreamPacketDescription[afio->numPacketsPerRead]{};
+    } else {
 #ifdef DEBUG
         fprintf(stderr, "CBR\n");
 #endif
-		afio->srcSizePerPacket = afio->srcFormat.mBytesPerPacket;
+        afio->srcSizePerPacket = afio->srcFormat.mBytesPerPacket;
         if (afio->srcSizePerPacket != 0) {
-		    afio->numPacketsPerRead = afio->srcBufferSize / afio->srcSizePerPacket;
+            afio->numPacketsPerRead = afio->srcBufferSize / afio->srcSizePerPacket;
         }
 #ifdef DEBUG
-        else {  
-            fprintf(stderr, "CBR: srcSizePerPacket == 0!!\n");
-        }
+        else { fprintf(stderr, "CBR: srcSizePerPacket == 0!!\n"); }
 #endif
-	}
-    
-    // check for cookies
-    res = AudioFileGetPropertyInfo(afio->afid, kAudioFilePropertyMagicCookieData, &afio->cookieSize, NULL);
+    }
+
+    res = AudioFileGetPropertyInfo(afio->afid, kAudioFilePropertyMagicCookieData, &afio->cookieSize, nullptr);
     if (res && res != kAudioFileUnsupportedPropertyError) {
         throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to obtain cookie info from audio file");
         goto bail;
     }
     res = 0;
-	if (!res && afio->cookieSize) {
-		afio->cookie = new char[afio->cookieSize];
-		res = AudioFileGetProperty(afio->afid, kAudioFilePropertyMagicCookieData, &afio->cookieSize, afio->cookie);
+    if (afio->cookieSize) {
+        afio->cookie = new char[afio->cookieSize];
+        res = AudioFileGetProperty(afio->afid, kAudioFilePropertyMagicCookieData, &afio->cookieSize, afio->cookie);
         if (res) {
             throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to obtain cookie from audio file");
             goto bail;
         }
-	}
-    
-    
+    }
+
 bail:
+    free(urlStr);
+    if (inputURLRef != nullptr) CFRelease(inputURLRef);
     if (res) {
-        if (afio->afid != NULL) {
-            AudioFileClose(afio->afid);
-        }
-        if (afio->pktDescs != NULL) {
-            delete afio->pktDescs;
-        }
-        if (afio->cookie != NULL) {
-            delete afio->cookie;
-        }
+        if (afio->afid    != nullptr) AudioFileClose(afio->afid);
+        if (afio->pktDescs != nullptr) delete[] afio->pktDescs;
+        if (afio->cookie   != nullptr) delete[] afio->cookie;
         delete afio;
+        return 0;
     }
 
 #ifdef DEBUG
-    fprintf(stderr, "Opened: %llu\n", (jlong)afio);
+    fprintf(stderr, "Opened: %llu\n", reinterpret_cast<jlong>(afio));
 #endif
-
-    return (jlong)afio;
+    return reinterpret_cast<jlong>(afio);
 }
 
 /**
  * Indicates whether the resource is seekable.
- *
- * @param env JNI env
- * @param stream calling Java stream
- * @param afioPtr pointer to CAAudioFileIO
- * @return always returns <code>JNI_TRUE</code>
  */
 JNIEXPORT jboolean JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_isSeekable(JNIEnv *env, jobject stream, jlong afioPtr) {
     return JNI_TRUE;
 }
 
 /**
- * Attempts the seek a given timestamp in the resource.
- *
- * @param env JNI env
- * @param stream calling Java stream
- * @param afioPtr pointer to CAAudioFileIO
- * @param microseconds timestamp in microseconds
+ * Attempts to seek to a given timestamp in the resource.
  */
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_seek(JNIEnv *env, jobject stream, jlong afioPtr, jlong microseconds) {
     int res = 0;
     UInt32 size;
-    CAAudioFileIO *afio = (CAAudioFileIO*)afioPtr;
+    CAAudioFileIO *afio = reinterpret_cast<CAAudioFileIO*>(afioPtr);
     AudioFramePacketTranslation translation;
 
-    translation.mFrame = (SInt64)(afio->srcFormat.mSampleRate * microseconds) / 1000000LL;
+    translation.mFrame = static_cast<SInt64>(afio->srcFormat.mSampleRate * microseconds) / 1000000LL;
 
 #ifdef DEBUG
     fprintf(stderr, "microseconds      : %llu\n", microseconds);
@@ -256,51 +223,38 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_seek(JNIEn
 #endif
 
     size = sizeof(translation);
-    res = AudioFileGetProperty(afio->afid, kAudioFilePropertyFrameToPacket, &size, &translation);
+    res  = AudioFileGetProperty(afio->afid, kAudioFilePropertyFrameToPacket, &size, &translation);
     if (res) {
         throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to translate frame to packet.");
         goto bail;
     }
-    afio->pos = translation.mPacket;
+    afio->pos         = translation.mPacket;
     afio->frameOffset = translation.mFrameOffsetInPacket;
 
-
 #ifdef DEBUG
-    fprintf(stderr, "frameOffset: %i\n", afio->frameOffset);
+    fprintf(stderr, "frameOffset: %i\n",   afio->frameOffset);
     fprintf(stderr, "afio->pos  : %llu\n", afio->pos);
 #endif
 
-    bail:
-
+bail:
     return;
 }
 
-
 /**
  * Closes this resource and frees all associated resources.
- *
- * @param env JNI env
- * @param stream calling Java stream
- * @param afioPtr pointer to CAAudioFileIO
  */
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_close(JNIEnv *env, jobject stream, jlong afioPtr) {
-
 #ifdef DEBUG
     fprintf(stderr, "Closing: %llu\n", afioPtr);
 #endif
     if (afioPtr == 0) return;
 
-    CAAudioFileIO *afio = (CAAudioFileIO*)afioPtr;
+    CAAudioFileIO *afio = reinterpret_cast<CAAudioFileIO*>(afioPtr);
     int res = AudioFileClose(afio->afid);
     if (res) {
         throwIOExceptionIfError(env, res, "Failed to close audio file");
     }
-    if (afio->pktDescs != NULL) {
-        delete afio->pktDescs;
-    }
-    if (afio->cookie != NULL) {
-        delete afio->cookie;
-    }
+    if (afio->pktDescs != nullptr) delete[] afio->pktDescs;
+    if (afio->cookie   != nullptr) delete[] afio->cookie;
     delete afio;
-    return;
 }

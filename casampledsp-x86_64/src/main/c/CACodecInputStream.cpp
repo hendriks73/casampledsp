@@ -23,34 +23,33 @@
 #include "com_tagtraum_casampledsp_CACodecInputStream.h"
 #include "CAUtils.h"
 
-static jfieldID nativeBufferFID = NULL;
-static jmethodID rewindMID = NULL;
-static jmethodID limitMID = NULL;
-static jmethodID fillNativeBufferMID = NULL;
-static jmethodID hasRemainingMID = NULL;
-static jmethodID positionMID = NULL;
+static jfieldID  nativeBufferFID     = nullptr;
+static jmethodID rewindMID           = nullptr;
+static jmethodID limitMID            = nullptr;
+static jmethodID fillNativeBufferMID = nullptr;
+static jmethodID hasRemainingMID     = nullptr;
+static jmethodID positionMID         = nullptr;
 
 
 /**
  * Callback for AudioConverterFillComplexBuffer used in fillNativeBuffer.
  */
-static OSStatus CACodecInputStream_ComplexInputDataProc (
-                                             AudioConverterRef             inAudioConverter,
-                                             UInt32                        *ioNumberDataPackets,
-                                             AudioBufferList               *ioData,
-                                             AudioStreamPacketDescription  **outDataPacketDescription,
-                                             void                          *inUserData) {
-
+static OSStatus CACodecInputStream_ComplexInputDataProc(
+        AudioConverterRef             inAudioConverter,
+        UInt32                       *ioNumberDataPackets,
+        AudioBufferList              *ioData,
+        AudioStreamPacketDescription **outDataPacketDescription,
+        void                         *inUserData) {
 #ifdef DEBUG
     fprintf(stderr, "CACodecInputStream_ComplexInputDataProc\n");
 #endif
- 
+
     int res = 0;
-    CAAudioConverterIO *acio = (CAAudioConverterIO*)inUserData;
-    jobject byteBuffer; 
+    CAAudioConverterIO *acio = static_cast<CAAudioConverterIO*>(inUserData);
+    jobject byteBuffer = nullptr;
 
     *ioNumberDataPackets = 0;
-    byteBuffer = acio->env->GetObjectField(acio->sourceStream, nativeBufferFID);    
+    byteBuffer = acio->env->GetObjectField(acio->sourceStream, nativeBufferFID);
 
     // check whether we have to fill the source's native buffer
     if (acio->env->CallBooleanMethod(byteBuffer, hasRemainingMID) == JNI_FALSE) {
@@ -64,39 +63,40 @@ static OSStatus CACodecInputStream_ComplexInputDataProc (
     if (acio->env->CallBooleanMethod(byteBuffer, hasRemainingMID) == JNI_FALSE) {
         goto bail;
     }
-
     // move position in java bytebuffer
-    acio->env->CallIntMethod(byteBuffer, positionMID, acio->sourceAudioIO->srcBufferSize);
-    ioData->mNumberBuffers = 1;
-    ioData->mBuffers[0].mNumberChannels = acio->sourceAudioIO->srcFormat.mChannelsPerFrame;
-    ioData->mBuffers[0].mDataByteSize = acio->sourceAudioIO->srcBufferSize;
-    //ioData->mBuffers[0].mDataByteSize = acio->sourceAudioIO->pktDescs[0].mDataByteSize;
-    ioData->mBuffers[0].mData = acio->sourceAudioIO->srcBuffer;
-    *ioNumberDataPackets = acio->sourceAudioIO->pos - acio->sourceAudioIO->lastPos;
+    acio->env->CallIntMethod(byteBuffer, positionMID, static_cast<jint>(acio->sourceAudioIO->srcBufferSize));
+    ioData->mNumberBuffers                  = 1;
+    ioData->mBuffers[0].mNumberChannels     = acio->sourceAudioIO->srcFormat.mChannelsPerFrame;
+    ioData->mBuffers[0].mDataByteSize       = acio->sourceAudioIO->srcBufferSize;
+    ioData->mBuffers[0].mData               = acio->sourceAudioIO->srcBuffer;
+    *ioNumberDataPackets                    = static_cast<UInt32>(acio->sourceAudioIO->pos - acio->sourceAudioIO->lastPos);
 
-    if (outDataPacketDescription != NULL) {
+    if (outDataPacketDescription != nullptr) {
         *outDataPacketDescription = acio->sourceAudioIO->pktDescs;
     }
-    *ioNumberDataPackets = acio->sourceAudioIO->pos - acio->sourceAudioIO -> lastPos;
-    
+
+#ifdef DEBUG
+    fprintf(stderr, "CACodecInputStream_ComplexInputDataProc *ioNumberDataPackets=%i\n", *ioNumberDataPackets);
+#endif
+
 bail:
+    if (byteBuffer != nullptr) {
+        acio->env->DeleteLocalRef(byteBuffer);
+    }
     if (res) {
+#ifdef DEBUG
+        fprintf(stderr, "CACodecInputStream_ComplexInputDataProc res=%i\n", res);
+#endif
         *ioNumberDataPackets = 0;
-    } 
-    
+    }
     return res;
 }
 
 /**
- * Fill this streams native buffer by transcoding the content of the source stream's native buffer to the
+ * Fill this stream's native buffer by transcoding the source stream's native buffer to the
  * desired format.
- *
- * @param env JNI env
- * @param stream calling stream object
- * @param converterPtr pointer to the used CAAudioConverterIO struct
  */
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_fillNativeBuffer(JNIEnv *env, jobject stream, jlong converterPtr) {
-    
 #ifdef DEBUG
     fprintf(stderr, "CACodecInputStream fillNativeBuffer\n");
 #endif
@@ -104,64 +104,75 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_fillNati
     int res = 0;
     int limit = 0;
     UInt32 ioOutputDataPacketSize;
-    CAAudioConverterIO *acio = (CAAudioConverterIO*)converterPtr;
+    CAAudioConverterIO *acio = reinterpret_cast<CAAudioConverterIO*>(converterPtr);
     AudioBufferList outOutputData;
-    jobject byteBuffer = NULL;
+    jobject byteBuffer = nullptr;
     acio->env = env;
-    
+
     // get java-managed byte buffer reference
-    byteBuffer = env->GetObjectField(stream, nativeBufferFID);    
-    if (byteBuffer == NULL) {
+    byteBuffer = env->GetObjectField(stream, nativeBufferFID);
+    if (byteBuffer == nullptr) {
         throwIOExceptionIfError(env, 1, "Failed to get native buffer for this codec");
         goto bail;
     }
-    
+
     // get pointer to our java managed bytebuffer
-    acio->srcBuffer = (char *)env->GetDirectBufferAddress(byteBuffer);
-    acio->srcBufferSize = env->GetDirectBufferCapacity(byteBuffer);
-    if (acio->srcBuffer == NULL) {
+    acio->srcBuffer     = static_cast<char*>(env->GetDirectBufferAddress(byteBuffer));
+    acio->srcBufferSize = static_cast<UInt32>(env->GetDirectBufferCapacity(byteBuffer));
+    if (acio->srcBuffer == nullptr) {
         throwIOExceptionIfError(env, 1, "Failed to obtain native buffer address for this codec");
         goto bail;
     }
-    ioOutputDataPacketSize = acio->srcBufferSize/acio->srcFormat.mBytesPerPacket;
-    outOutputData.mNumberBuffers = 1;
+    ioOutputDataPacketSize                  = acio->srcBufferSize / acio->srcFormat.mBytesPerPacket;
+    outOutputData.mNumberBuffers            = 1;
     outOutputData.mBuffers[0].mNumberChannels = acio->srcFormat.mChannelsPerFrame;
     outOutputData.mBuffers[0].mDataByteSize = acio->srcBufferSize;
-    outOutputData.mBuffers[0].mData = acio->srcBuffer;
+    outOutputData.mBuffers[0].mData         = acio->srcBuffer;
 
+#ifdef DEBUG
+    fprintf(stderr, "pre AudioConverterFillComplexBuffer\n");
+#endif
     res = AudioConverterFillComplexBuffer(acio->acref,
-                                    CACodecInputStream_ComplexInputDataProc,
-                                    acio,
-                                    &ioOutputDataPacketSize,
-                                    &outOutputData,
-                                    acio->pktDescs);
-
+                                          CACodecInputStream_ComplexInputDataProc,
+                                          acio,
+                                          &ioOutputDataPacketSize,
+                                          &outOutputData,
+                                          acio->pktDescs);
+#ifdef DEBUG
+    fprintf(stderr, "post AudioConverterFillComplexBuffer\n");
+#endif
     if (res) {
         throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to fill complex audio buffer");
         goto bail;
     }
-    
+
     // we already wrote to the buffer, now we still need to
     // set new bytebuffer limit and position to 0.
-    acio->lastPos = acio->pos; 
-    acio->pos += ioOutputDataPacketSize;
+    acio->lastPos = acio->pos;
+    acio->pos    += ioOutputDataPacketSize;
+#ifdef DEBUG
+    fprintf(stderr, "CACodecInputStream fillNativeBuffer ioOutputDataPacketSize=%i\n", ioOutputDataPacketSize);
+    fprintf(stderr, "CACodecInputStream fillNativeBuffer acio->srcFormat.mBytesPerPacket=%i\n", acio->srcFormat.mBytesPerPacket);
+#endif
     if (acio->srcFormat.mBytesPerPacket != 0) {
-        limit = ioOutputDataPacketSize*acio->srcFormat.mBytesPerPacket;
-    }
-    else {
-        uint i;
-        for (i=0; i<ioOutputDataPacketSize; i++) {
-            limit += acio->pktDescs[i].mDataByteSize;
+        limit = static_cast<int>(ioOutputDataPacketSize * acio->srcFormat.mBytesPerPacket);
+    } else {
+        for (UInt32 i = 0; i < ioOutputDataPacketSize; i++) {
+            limit += static_cast<int>(acio->pktDescs[i].mDataByteSize);
         }
     }
-    acio->srcBufferSize = limit;
-    env->CallObjectMethod(byteBuffer, limitMID, (jint)limit);
+#ifdef DEBUG
+    fprintf(stderr, "CACodecInputStream fillNativeBuffer limit=%i\n", limit);
+#endif
+    acio->srcBufferSize = static_cast<UInt32>(limit);
+    env->CallObjectMethod(byteBuffer, limitMID, static_cast<jint>(limit));
     env->CallObjectMethod(byteBuffer, rewindMID);
     if (acio->sourceAudioIO->frameOffset != 0) {
 #ifdef DEBUG
         fprintf(stderr, "Need to adjust position to frame: %i\n", acio->sourceAudioIO->frameOffset);
         fprintf(stderr, "acio->srcFormat.mBytesPerFrame  : %i\n", acio->srcFormat.mBytesPerFrame);
-        env->CallIntMethod(byteBuffer, positionMID, acio->srcFormat.mBytesPerFrame * acio->sourceAudioIO->frameOffset);
+        env->CallIntMethod(byteBuffer, positionMID,
+            static_cast<jint>(acio->srcFormat.mBytesPerFrame * acio->sourceAudioIO->frameOffset));
 #endif
         acio->sourceAudioIO->frameOffset = 0;
     }
@@ -173,162 +184,122 @@ bail:
 /**
  * Sets up an AudioConverter to convert data to the desired format.
  *
- * @param env JNI env
- * @param stream calling stream object
- * @param targetFormat target format
- * @param sourceStream source data stream
- * @param pointer pointer to the source data stream's CAAudioIO struct
- * @return new CAAudioConverterIO pointer
+ * @return new CAAudioConverterIO pointer, or 0 on error
  */
 JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_open(JNIEnv *env, jobject stream, jobject targetFormat, jobject sourceStream, jlong pointer) {
     int res = 0;
-    CAAudioConverterIO *acio = new CAAudioConverterIO;
-    acio->sourceStream = NULL;
+    CAAudioConverterIO *acio = new CAAudioConverterIO{};  // zero-initializes all fields
 
-    jobject byteBuffer = NULL;
-    jclass audioFormatClass = NULL;
-    jmethodID sampleRateMID = NULL;
-    jmethodID channelsMID = NULL;
-    jmethodID frameSizeMID = NULL;
-    jmethodID sampleSizeInBitsMID = NULL;
-    jmethodID encodingMID = NULL;
-    jmethodID bigEndianMID = NULL;
-    
-    jclass caEncodingClass = NULL;
-    jmethodID dataFormatMID = NULL;
-    jobject targetEncoding = NULL;
-    
-    /* get method and field ids, if we don't have them already */
-    if (fillNativeBufferMID == NULL || hasRemainingMID == NULL || positionMID == NULL || nativeBufferFID == NULL || rewindMID == NULL || limitMID == NULL) {
-        jclass nativePeerInputStreamClass = env->FindClass("com/tagtraum/casampledsp/CANativePeerInputStream");
-        fillNativeBufferMID = env->GetMethodID(nativePeerInputStreamClass, "fillNativeBuffer", "()V");
-        nativeBufferFID = env->GetFieldID(nativePeerInputStreamClass, "nativeBuffer", "Ljava/nio/ByteBuffer;");
-        jclass bufferClass = env->FindClass("java/nio/Buffer");
+    jobject byteBuffer         = nullptr;
+    jclass  audioFormatClass   = nullptr;
+    jmethodID sampleRateMID    = nullptr;
+    jmethodID channelsMID      = nullptr;
+    jmethodID frameSizeMID     = nullptr;
+    jmethodID sampleSizeMID    = nullptr;
+    jmethodID encodingMID      = nullptr;
+    jmethodID bigEndianMID     = nullptr;
+    jclass    caEncodingClass  = nullptr;
+    jmethodID dataFormatMID    = nullptr;
+    jobject   targetEncoding   = nullptr;
+    jclass    encodingBaseClass = nullptr;
+    jmethodID toStringMID      = nullptr;
+    jstring   encodingNameStr  = nullptr;
+    const char *encodingName   = nullptr;
+    bool isFloatTarget         = false;
+
+    if (fillNativeBufferMID == nullptr || hasRemainingMID == nullptr || positionMID == nullptr
+            || nativeBufferFID == nullptr || rewindMID == nullptr || limitMID == nullptr) {
+        jclass nativePeerClass = env->FindClass("com/tagtraum/casampledsp/CANativePeerInputStream");
+        fillNativeBufferMID = env->GetMethodID(nativePeerClass, "fillNativeBuffer", "()V");
+        nativeBufferFID     = env->GetFieldID(nativePeerClass,  "nativeBuffer", "Ljava/nio/ByteBuffer;");
+        jclass bufferClass  = env->FindClass("java/nio/Buffer");
         hasRemainingMID = env->GetMethodID(bufferClass, "hasRemaining", "()Z");
-        positionMID = env->GetMethodID(bufferClass, "position", "(I)Ljava/nio/Buffer;");
-        rewindMID = env->GetMethodID(bufferClass, "rewind", "()Ljava/nio/Buffer;");
-        limitMID = env->GetMethodID(bufferClass, "limit", "(I)Ljava/nio/Buffer;");
+        positionMID     = env->GetMethodID(bufferClass, "position",     "(I)Ljava/nio/Buffer;");
+        rewindMID       = env->GetMethodID(bufferClass, "rewind",       "()Ljava/nio/Buffer;");
+        limitMID        = env->GetMethodID(bufferClass, "limit",        "(I)Ljava/nio/Buffer;");
     }
-    
+
     // get java-managed byte buffer reference
-    byteBuffer = env->GetObjectField(stream, nativeBufferFID);    
-    if (byteBuffer == NULL) {
+    byteBuffer = env->GetObjectField(stream, nativeBufferFID);
+    if (byteBuffer == nullptr) {
         throwIOExceptionIfError(env, 1, "Failed to get native buffer for this codec");
         goto bail;
     }
-    
-    acio->sourceStream = env->NewGlobalRef(sourceStream);
-    acio->sourceAudioIO = (CAAudioIO*)pointer;
-    acio->pktDescs = NULL;
-    acio->env = env;
-    acio->srcBuffer = (char *)env->GetDirectBufferAddress(byteBuffer);
-    acio->srcBufferSize = env->GetDirectBufferCapacity(byteBuffer);
-    acio->cookie = NULL;
-    acio->cookieSize = 0;
-    acio->pos = 0;
-    acio->lastPos = 0;
-    acio->frameOffset = 0;
 
-    
-    audioFormatClass = env->FindClass("javax/sound/sampled/AudioFormat");
-    sampleRateMID = env->GetMethodID(audioFormatClass, "getSampleRate", "()F");
-    channelsMID = env->GetMethodID(audioFormatClass, "getChannels", "()I");
-    frameSizeMID = env->GetMethodID(audioFormatClass, "getFrameSize", "()I");
-    sampleSizeInBitsMID = env->GetMethodID(audioFormatClass, "getSampleSizeInBits", "()I");
-    encodingMID = env->GetMethodID(audioFormatClass, "getEncoding", "()Ljavax/sound/sampled/AudioFormat$Encoding;");
-    bigEndianMID = env->GetMethodID(audioFormatClass, "isBigEndian", "()Z");
+    acio->sourceStream  = env->NewGlobalRef(sourceStream);
+    acio->sourceAudioIO = reinterpret_cast<CAAudioIO*>(pointer);
+    acio->env           = env;
+    acio->srcBuffer     = static_cast<char*>(env->GetDirectBufferAddress(byteBuffer));
+    acio->srcBufferSize = static_cast<UInt32>(env->GetDirectBufferCapacity(byteBuffer));
+
+    audioFormatClass  = env->FindClass("javax/sound/sampled/AudioFormat");
+    sampleRateMID     = env->GetMethodID(audioFormatClass, "getSampleRate",     "()F");
+    channelsMID       = env->GetMethodID(audioFormatClass, "getChannels",       "()I");
+    frameSizeMID      = env->GetMethodID(audioFormatClass, "getFrameSize",      "()I");
+    sampleSizeMID     = env->GetMethodID(audioFormatClass, "getSampleSizeInBits", "()I");
+    encodingMID       = env->GetMethodID(audioFormatClass, "getEncoding",       "()Ljavax/sound/sampled/AudioFormat$Encoding;");
+    bigEndianMID      = env->GetMethodID(audioFormatClass, "isBigEndian",       "()Z");
 
     caEncodingClass = env->FindClass("com/tagtraum/casampledsp/CAAudioFormat$CAEncoding");
-    dataFormatMID = env->GetMethodID(caEncodingClass, "getDataFormat", "()I");
-    targetEncoding = env->CallObjectMethod(targetFormat, encodingMID);
-    
-    
-    // set up the format we want to convert *to*
-    acio->srcFormat.mSampleRate = (Float64)env->CallFloatMethod(targetFormat, sampleRateMID);
-    acio->srcFormat.mChannelsPerFrame = (UInt32)env->CallIntMethod(targetFormat, channelsMID);
-    acio->srcFormat.mBitsPerChannel = (UInt32)env->CallIntMethod(targetFormat, sampleSizeInBitsMID);
-    acio->srcFormat.mFramesPerPacket = 1;
-    acio->srcFormat.mBytesPerFrame = (UInt32)env->CallIntMethod(targetFormat, frameSizeMID);
-    acio->srcFormat.mBytesPerPacket = acio->srcFormat.mBytesPerFrame;
-    acio->srcFormat.mFormatID = (UInt32)env->CallIntMethod(targetEncoding, dataFormatMID);
-    acio->srcFormat.mFormatFlags = 0;
-    acio->srcFormat.mReserved = 0;
+    dataFormatMID   = env->GetMethodID(caEncodingClass, "getDataFormat", "()I");
+    targetEncoding  = env->CallObjectMethod(targetFormat, encodingMID);
 
-    // massage format flags
+    // Detect PCM_FLOAT by encoding name: both PCM_SIGNED and PCM_FLOAT share
+    // kAudioFormatLinearPCM as format ID; the distinction is in the format flags.
+    encodingBaseClass = env->FindClass("javax/sound/sampled/AudioFormat$Encoding");
+    toStringMID       = env->GetMethodID(encodingBaseClass, "toString", "()Ljava/lang/String;");
+    encodingNameStr   = static_cast<jstring>(env->CallObjectMethod(targetEncoding, toStringMID));
+    encodingName      = env->GetStringUTFChars(encodingNameStr, nullptr);
+    isFloatTarget     = (strcmp(encodingName, "PCM_FLOAT") == 0);
+    env->ReleaseStringUTFChars(encodingNameStr, encodingName);
+    env->DeleteLocalRef(encodingNameStr);
+
+    // set up the target AudioStreamBasicDescription
+    acio->srcFormat.mSampleRate       = static_cast<Float64>(env->CallFloatMethod(targetFormat, sampleRateMID));
+    acio->srcFormat.mChannelsPerFrame = static_cast<UInt32>(env->CallIntMethod(targetFormat, channelsMID));
+    acio->srcFormat.mBitsPerChannel   = static_cast<UInt32>(env->CallIntMethod(targetFormat, sampleSizeMID));
+    acio->srcFormat.mFramesPerPacket  = 1;
+    acio->srcFormat.mBytesPerFrame    = static_cast<UInt32>(env->CallIntMethod(targetFormat, frameSizeMID));
+    acio->srcFormat.mBytesPerPacket   = acio->srcFormat.mBytesPerFrame;
+    acio->srcFormat.mFormatID         = static_cast<UInt32>(env->CallIntMethod(targetEncoding, dataFormatMID));
+
     if (acio->srcFormat.mFormatID == kAudioFormatLinearPCM) {
-        acio->srcFormat.mFormatFlags += env->CallBooleanMethod(targetFormat, bigEndianMID) == JNI_TRUE ? kAudioFormatFlagIsBigEndian : 0;
-        acio->srcFormat.mFormatFlags += kAudioFormatFlagIsPacked;
-        //acio->srcFormat.mFormatFlags += kAudioFormatFlagIsFloat;
-        // for now we don't support unsigned PCM
-        acio->srcFormat.mFormatFlags += kAudioFormatFlagIsSignedInteger;
-    }
-        
-    // make sure that AudioSystem#NOT_SPECIFIED (i.e. -1) is converted to 0.
-    if (acio->srcFormat.mSampleRate < 0) acio->srcFormat.mSampleRate = 0;
-    if (acio->srcFormat.mChannelsPerFrame < 0) acio->srcFormat.mChannelsPerFrame = 0;
-    if (acio->srcFormat.mBitsPerChannel < 0) acio->srcFormat.mBitsPerChannel = 0;
-    if (acio->srcFormat.mBytesPerFrame < 0) acio->srcFormat.mBytesPerFrame = 0;
-    if (acio->srcFormat.mBytesPerPacket < 0) acio->srcFormat.mBytesPerPacket = 0;
-
-
-    // checks - we need to make sure to not divide by zero later on
-    if (acio->srcFormat.mBytesPerFrame == 0) {
-        throwIllegalArgumentExceptionIfError(env, 1, "frameSize must be positive");
-        goto bail;
-    }
-    if (acio->srcFormat.mBytesPerPacket == 0) {
-        throwIllegalArgumentExceptionIfError(env, 1, "bytesPerPacket must be positive");
-        goto bail;
-    }
-    if (acio->srcFormat.mBitsPerChannel == 0) {
-        throwIllegalArgumentExceptionIfError(env, 1, "sampleSizeInBits must be positive");
-        goto bail;
-    }
-    
-    
-    // setup the format we want to convert *from*
-    while (acio->sourceAudioIO->srcFormat.mFormatID == 0) {
-        // we don't have the native structure yet/anymore - therefore we have to call fillBuffer at least once
-        env->CallVoidMethod(sourceStream, fillNativeBufferMID);
-        res = acio->env->ExceptionCheck();
-        if (res) {
-            goto bail;
+        if (isFloatTarget) {
+            acio->srcFormat.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
+        } else {
+            acio->srcFormat.mFormatFlags =
+                (env->CallBooleanMethod(targetFormat, bigEndianMID) == JNI_TRUE ? kAudioFormatFlagIsBigEndian : 0u)
+                | kAudioFormatFlagIsPacked
+                | kAudioFormatFlagIsSignedInteger;
         }
     }
-    
+
+    // convert AudioSystem.NOT_SPECIFIED (-1) to 0
+    if (static_cast<SInt32>(acio->srcFormat.mSampleRate)       < 0) acio->srcFormat.mSampleRate       = 0;
+    if (static_cast<SInt32>(acio->srcFormat.mChannelsPerFrame)  < 0) acio->srcFormat.mChannelsPerFrame  = 0;
+    if (static_cast<SInt32>(acio->srcFormat.mBitsPerChannel)    < 0) acio->srcFormat.mBitsPerChannel    = 0;
+    if (static_cast<SInt32>(acio->srcFormat.mBytesPerFrame)     < 0) acio->srcFormat.mBytesPerFrame     = 0;
+    if (static_cast<SInt32>(acio->srcFormat.mBytesPerPacket)    < 0) acio->srcFormat.mBytesPerPacket    = 0;
+
+    if (acio->srcFormat.mBytesPerFrame  == 0) { throwIllegalArgumentExceptionIfError(env, 1, "frameSize must be positive");     goto bail; }
+    if (acio->srcFormat.mBytesPerPacket == 0) { throwIllegalArgumentExceptionIfError(env, 1, "bytesPerPacket must be positive"); goto bail; }
+    if (acio->srcFormat.mBitsPerChannel == 0) { throwIllegalArgumentExceptionIfError(env, 1, "sampleSizeInBits must be positive"); goto bail; }
+
+    while (acio->sourceAudioIO->srcFormat.mFormatID == 0) {
+        env->CallVoidMethod(sourceStream, fillNativeBufferMID);
+        res = acio->env->ExceptionCheck();
+        if (res) goto bail;
+    }
+
     res = AudioConverterNew(&acio->sourceAudioIO->srcFormat, &acio->srcFormat, &acio->acref);
     if (res) {
         throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to create native codec");
         goto bail;
     }
-    
-    // TODO: Deal with AudioConverterPrimeInfo as described in ConvertFile sample code.
-    
-    /*
-    if (acio->sourceAudioIO->srcFormat.mBytesPerPacket == 0) {
-		// input format is VBR, so we need to get max size per packet
-        UInt32 size = sizeof(acio->srcSizePerPacket);
-        res = AudioConverterGetProperty(acio->acref, kAudioConverterPropertyMaximumInputPacketSize, &size, &acio->srcSizePerPacket);
-        if (res) {
-            throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to get maximum output packet size");
-            goto bail;
-        }
-        acio->srcSizePerPacket = 5793;
-        fprintf(stderr, "acio->srcSizePerPacket   : %i\n", acio->srcSizePerPacket);
-        fprintf(stderr, "acio->srcBufferSize      : %i\n", acio->srcBufferSize);
-		acio->numPacketsPerRead = acio->srcBufferSize / acio->srcSizePerPacket;
-		//acio->pktDescs = new AudioStreamPacketDescription [acio->numPacketsPerRead];
-        fprintf(stderr, "acio->numPacketsPerRead   : %i\n", acio->numPacketsPerRead);
-	}
-	else {
-		acio->srcSizePerPacket = acio->srcFormat.mBytesPerPacket;
-		acio->numPacketsPerRead = acio->srcBufferSize / acio->srcSizePerPacket;
-	}
-     */
-    
-    // set cookie, if we have one
+
     if (acio->sourceAudioIO->cookieSize > 0) {
-		res = AudioConverterSetProperty(acio->acref, kAudioConverterDecompressionMagicCookie, acio->sourceAudioIO->cookieSize, acio->sourceAudioIO->cookie);
+        res = AudioConverterSetProperty(acio->acref, kAudioConverterDecompressionMagicCookie,
+                                        acio->sourceAudioIO->cookieSize, acio->sourceAudioIO->cookie);
         if (res) {
             throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to set cookie from source.");
             goto bail;
@@ -337,60 +308,45 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_open(JN
 
 bail:
     if (res) {
-        if (acio->sourceStream != NULL) {
+        if (acio->sourceStream != nullptr) {
             env->DeleteGlobalRef(acio->sourceStream);
-            acio->sourceStream = NULL;
+            acio->sourceStream = nullptr;
         }
-        if (acio->acref != NULL) {
-            AudioConverterDispose(acio->acref);
-        }
-        if (acio->pktDescs != NULL) {
-            delete acio->pktDescs;
-        }
+        if (acio->acref    != nullptr) AudioConverterDispose(acio->acref);
+        if (acio->pktDescs != nullptr) delete[] acio->pktDescs;
         delete acio;
+        return 0;
     }
-    
-    return (jlong)acio;
+    return reinterpret_cast<jlong>(acio);
 }
 
 /**
- * Closes the AudioConverter and cleans up other resources.
- *
- * @param env JNI env
- * @param stream calling stream object
- * @param converterPtr pointer to CAAudioConverterIO struct
+ * Closes the AudioConverter and cleans up all resources.
  */
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_close(JNIEnv *env, jobject stream, jlong converterPtr) {
     if (converterPtr == 0) return;
-    CAAudioConverterIO *acio = (CAAudioConverterIO*)converterPtr;
-    if (acio->sourceStream != NULL) {
+    CAAudioConverterIO *acio = reinterpret_cast<CAAudioConverterIO*>(converterPtr);
+    if (acio->sourceStream != nullptr) {
         env->DeleteGlobalRef(acio->sourceStream);
-        acio->sourceStream = NULL;
+        acio->sourceStream = nullptr;
     }
-    if (acio->acref != NULL) {
+    if (acio->acref != nullptr) {
         int res = AudioConverterDispose(acio->acref);
         if (res) {
             throwIOExceptionIfError(env, res, "Failed to close codec");
         }
     }
-    if (acio->pktDescs != NULL) {
-        delete acio->pktDescs;
-    }
+    if (acio->pktDescs != nullptr) delete[] acio->pktDescs;
     delete acio;
-    
 }
 
 /**
- * Resets the converter - necessary after seek() to flush codec buffers.
- *
- * @param env JNI env
- * @param stream calling stream object
- * @param converterPtr pointer to CAAudioConverterIO struct
+ * Resets the converter — necessary after seek() to flush codec buffers.
  */
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_reset(JNIEnv *env, jobject stream, jlong converterPtr) {
     if (converterPtr == 0) return;
-    CAAudioConverterIO *acio = (CAAudioConverterIO*)converterPtr;
-    if (acio->acref != NULL) {
+    CAAudioConverterIO *acio = reinterpret_cast<CAAudioConverterIO*>(converterPtr);
+    if (acio->acref != nullptr) {
         int res = AudioConverterReset(acio->acref);
         if (res) {
             throwIOExceptionIfError(env, res, "Failed to reset audio converter");
@@ -399,4 +355,3 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_reset(JN
         throwIOExceptionIfError(env, -1, "Failed to reset audio converter as it is NULL");
     }
 }
-

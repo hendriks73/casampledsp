@@ -95,7 +95,4 @@ void throwIllegalArgumentExceptionIfError(JNIEnv *, int, const char *);
 
 void throwFileNotFoundExceptionIfError(JNIEnv *, int, const char *);
 
-/**
- * Returns true if an error occurred.
- */
-void ca_create_url_ref(JNIEnv *, jstring, CFURLRef&);
+CFURLRef ca_url_ref_from_utf8(const char *urlBytes, CFIndex len);
