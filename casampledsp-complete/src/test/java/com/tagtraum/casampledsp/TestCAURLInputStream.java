@@ -376,4 +376,21 @@ public class TestCAURLInputStream {
       file.delete();
     }
   }
+
+  @Test
+  public void testReadThroughFileWithEmoji() throws IOException, UnsupportedAudioFileException {
+    // Tests that CAURLInputStream can open and read a file whose name contains emoji.
+    // file.toURI().toURL() percent-encodes supplementary characters; the resulting URL
+    // string's UTF-8 bytes are passed via JNI to CFURLCreateWithBytes, which resolves
+    // them correctly without CESU-8 corruption.
+    final String filename = "test.mp3";
+    final File file = File.createTempFile("testReadThroughFileWithEmoji🎵", filename);
+    extractFile(filename, file);
+    try (final CAURLInputStream in = new CAURLInputStream(file.toURI().toURL())) {
+      final byte[] buf = new byte[1024];
+      assertTrue("Expected to read audio bytes from emoji-named file", in.read(buf) > 0);
+    } finally {
+      file.delete();
+    }
+  }
 }

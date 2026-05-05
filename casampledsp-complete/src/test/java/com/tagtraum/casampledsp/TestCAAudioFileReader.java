@@ -15,6 +15,7 @@ import java.net.URL;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import javax.sound.sampled.*;
+import org.junit.Assume;
 import org.junit.Test;
 
 /**
@@ -264,6 +265,68 @@ public class TestCAAudioFileReader {
     final File file = new File("/someDir/;:&=+@[]?/name.txt");
     final URL url = CAAudioFileReader.fileToURL(file);
     assertEquals("file:/someDir/%3B%3A%26%3D%2B%40%5B%5D%3F/name.txt", url.toString());
+  }
+
+  @Test
+  public void testGetAudioFileFormatFileWithEmojis()
+      throws IOException, UnsupportedAudioFileException {
+    // Tests that getAudioFileFormat(File) handles emoji in the file name.
+    // file.toURI().toASCIIString() percent-encodes supplementary characters (emoji).
+    // The percent-encoded URL bytes are passed via JNI to CFURLCreateWithBytes,
+    // which resolves them to the original file path without CESU-8 corruption.
+    final String filename = "test.mp3";
+    final File file = File.createTempFile("testGetAudioFileFormatFileWithEmojis🔥", filename);
+    extractFile(filename, file);
+    try {
+      final AudioFileFormat fileFormat = new CAAudioFileReader().getAudioFileFormat(file);
+      System.out.println(fileFormat);
+      assertEquals("mp3", fileFormat.getType().getExtension());
+      assertEquals(2, fileFormat.getFormat().getChannels());
+    } finally {
+      file.delete();
+    }
+  }
+
+  @Test
+  public void testGetAudioInputStreamFileWithEmojis()
+      throws IOException, UnsupportedAudioFileException {
+    // Tests that getAudioInputStream(File) can open and read a file whose
+    // name contains emoji. Exercises the CAURLInputStream JNI open() call.
+    final String filename = "test.mp3";
+    final File file = File.createTempFile("testGetAudioInputStreamFileWithEmojis🎵", filename);
+    extractFile(filename, file);
+    try {
+      final AudioInputStream stream = new CAAudioFileReader().getAudioInputStream(file);
+      try {
+        final byte[] buf = new byte[1024];
+        assertTrue("Expected to read audio bytes from emoji-named file", stream.read(buf) > 0);
+      } finally {
+        stream.close();
+      }
+    } finally {
+      file.delete();
+    }
+  }
+
+  @Test
+  public void testFileWithEmojiToURL() throws MalformedURLException {
+    // fileToURL() must produce a valid file: URL for paths containing emoji.
+    // file.toURI().toASCIIString() percent-encodes supplementary characters,
+    // so the resulting URL contains percent-encoded UTF-8 bytes rather than raw emoji.
+    Assume.assumeTrue(File.separator.equals("/"));
+    final File file = new File("/someDir/test🔥/name.mp3");
+    final URL url = CAAudioFileReader.fileToURL(file);
+    assertTrue("URL must use file: protocol: " + url, url.toString().startsWith("file:"));
+    // The emoji must be represented in the URL in some form (raw or percent-encoded).
+    assertTrue(
+        "URL must contain emoji path component: " + url,
+        url.toString().contains("test🔥")
+            || url.toString().contains("%F0%9F%94%A5")
+            || url.toString().contains("%f0%9f%94%a5"));
+    // The path decoded from the URL must contain the original file name.
+    assertTrue(
+        "Decoded path must contain original file name: " + url,
+        url.getFile().contains("test") && url.getFile().contains("name.mp3"));
   }
 
   private void extractFile(final String filename, final File file) throws IOException {
