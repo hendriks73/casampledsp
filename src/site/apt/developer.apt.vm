@@ -13,7 +13,7 @@ Developer
 
         * git
 
-        * Maven 3.0.5 or later, {{http://maven.apache.org/}}
+        * Maven 3.6.0 or later, {{https://maven.apache.org/}}
 
         * Apple Command Line Tools, available via {{https://developer.apple.com/}}, or XCode, {{https://developer.apple.com/xcode/}}
 
@@ -27,24 +27,17 @@ Developer
 git clone git@github.com:hendriks73/casampledsp.git casampledsp
 +-------------------------------+
 
-    Then you still need to adjust some properties in the parent <<<pom.xml>>>.
-    Or.. simply override them using <<<-Dname=value>>> notation. E.g. to point to your
-    JDK's JNI headers, add
+    Then build with:
 
 +-------------------------------+
--Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk-10.jdk/Contents/Home/include/
+mvn clean install
 +-------------------------------+
 
-    to your mvn call.
-    You might also need to change <<<mmacosx-version-min>>> and <<<isysroot>>>, if you
-    don't have an OS X 10.7 SDK installed.
+    Note: the <<<macos-latest>>> GitHub Actions CI runner is ARM64 (Apple Silicon). Both x86_64 and
+    arm64 native libraries are always built together in a single Maven run via cross-compilation.
 
-    So all in all, something like the following might work for you, depending on where
-    you installed the macOS SDK, and the macOS JDK:
+    To enable C-level debug output during development, pass <<<-Dcflags=-DDEBUG>>>:
 
 +-------------------------------+
-mvn -Ddarwin.headers.jni=/Library/Java/JavaVirtualMachines/jdk-10.jdk/Contents/Home/include/ \
-    -Dmmacosx-version-min=10.7 \
-    -Disysroot=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk \
-    clean install
+mvn clean install -Dcflags=-DDEBUG
 +-------------------------------+

@@ -6,10 +6,10 @@
  */
 package com.tagtraum.casampledsp;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import org.junit.Test;
 
 /**
  * TestCAAudioFormat.
@@ -18,10 +18,10 @@ import static org.junit.Assert.assertNotNull;
  */
 public class TestCAAudioFormat {
 
-    @Test
-    public void testMissingDataFormat() {
-        final CAAudioFormat.CAEncoding encoding = CAAudioFormat.CAEncoding.getInstance(1234567890);
-        assertNotNull(encoding);
-        assertEquals(1234567890, encoding.getDataFormat());
-    }
+  @Test
+  public void testMissingDataFormat() {
+    final CAAudioFormat.CAEncoding encoding = CAAudioFormat.CAEncoding.getInstance(1234567890);
+    assertNotNull(encoding);
+    assertEquals(1234567890, encoding.getDataFormat());
+  }
 }

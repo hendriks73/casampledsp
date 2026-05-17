@@ -18,8 +18,8 @@
     </licenses>
 
     <organization>
-        <name>tagtraum industries incorporated</name>
-        <url>https://www.tagtraum.com/</url>
+        <name>Jalulo UG (haftungsbeschränkt)</name>
+        <url>https://jalulo.eu/</url>
     </organization>
 
     <developers>
@@ -27,9 +27,9 @@
             <id>hendrik</id>
             <name>Hendrik Schreiber</name>
             <email>hs@tagtraum.com</email>
-            <url>https://www.tagtraum.com/</url>
-            <organization>tagtraum industries incorporated</organization>
-            <organizationUrl>https://www.tagtraum.com/</organizationUrl>
+            <url>https://jalulo.eu/</url>
+            <organization>Jalulo UG (haftungsbeschränkt)</organization>
+            <organizationUrl>https://jalulo.eu/</organizationUrl>
             <roles>
                 <role>creator</role>
             </roles>
@@ -64,7 +64,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>3.4.5</version>
+                <version>3.9.0</version>
                 <reportSets>
                     <reportSet>
                         <reports>
@@ -82,12 +82,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.12.0</version>
                 <reportSets>
                     <reportSet>
                         <reports>
                             <report>javadoc</report>
-                            <report>test-javadoc</report>
                         </reports>
                     </reportSet>
                     <reportSet>
@@ -101,7 +100,6 @@
                 <configuration>
                     <minmemory>250m</minmemory>
                     <maxmemory>1g</maxmemory>
-                    <verbose>true</verbose>
                     <doctitle>CASampledSP ${project.version} API</doctitle>
                     <windowtitle>CASampledSP ${project.version} API</windowtitle>
                 </configuration>
@@ -114,13 +112,33 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>3.2.8</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.5.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.6.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.13</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.1.2</version>
+                    <version>3.5.5</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.10.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -130,138 +148,62 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>1.9.1</version>
+                    <version>3.6.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.11.0</version>
+                    <version>3.15.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.12.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-antrun-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.2.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.4.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
-                    <version>3.12.0</version>
+                    <version>3.21.0</version>
                 </plugin>
-
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-project-info-reports-plugin</artifactId>
+                    <version>3.9.0</version>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <version>2.8.2</version>
+                    <version>3.1.4</version>
                 </plugin>
-
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.5.1</version>
+                    <version>3.3.1</version>
                 </plugin>
-
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>3.3.0</version>
                 </plugin>
-
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>cobertura-maven-plugin</artifactId>
-                    <version>2.7</version>
+                    <groupId>com.diffplug.spotless</groupId>
+                    <artifactId>spotless-maven-plugin</artifactId>
+                    <version>3.4.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>
 
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-site-plugin</artifactId>
-                <configuration>
-                    <chmod>false</chmod>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <configuration>
-                    <!-- run "install" before "deploy" and "site-deploy" to avoid build failure -->
-                    <goals>install deploy site-deploy</goals>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <compilerArgs>
-                        <arg>-h</arg>
-                        <arg>${project.build.directory}/native/include</arg>
-                    </compilerArgs>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.5.0</version>
-                <configuration>
-                    <minmemory>250m</minmemory>
-                    <maxmemory>1g</maxmemory>
-                    <verbose>true</verbose>
-                    <doctitle>CASampledSP ${project.version} API</doctitle>
-                    <windowtitle>CASampledSP ${project.version} API</windowtitle>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -294,8 +236,8 @@
                                 <echo>Project.Basedir: ${project.basedir}}</echo>
                                 <echo>This doxygen call may fail for modules without doxygen configuration.</echo>
                                 <echo>=====================================================================</echo>
-                                <exec dir="${basedir}" executable="doxygen" failonerror="false">
-                                    <arg line="${basedir}/src/main/doxygen/Doxyfile" />
+                                <exec dir="${basedir}" executable="${doxygen}" failonerror="false">
+                                    <arg line="${basedir}/src/main/doxygen/Doxyfile"/>
                                 </exec>
                             </target>
                         </configuration>
@@ -306,16 +248,97 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
                 <configuration>
-                    <formats>
-                        <format>html</format>
-                        <format>xml</format>
-                    </formats>
-                    <check/>
+                    <chmod>false</chmod>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <!-- run "install" before "deploy" and "site-deploy" to avoid build failure -->
+                    <goals>install deploy site-deploy</goals>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>8</release>
+                    <compilerArgs>
+                        <arg>-h</arg>
+                        <arg>${project.build.directory}/native/include</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <minmemory>250m</minmemory>
+                    <maxmemory>1g</maxmemory>
+                    <doctitle>CASampledSP ${project.version} API</doctitle>
+                    <windowtitle>CASampledSP ${project.version} API</windowtitle>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>generate-report</id>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
 
@@ -323,23 +346,17 @@
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
                 <artifactId>wagon-ftp</artifactId>
+                <version>3.4.3</version>
             </extension>
             <extension>
                 <groupId>org.apache.maven.wagon</groupId>
                 <artifactId>wagon-ssh</artifactId>
+                <version>3.4.3</version>
             </extension>
         </extensions>
     </build>
 
     <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
         <site>
             <id>tagtraum-site</id>
             <url>sftp://ssh.strato.de/casampledsp/</url>
@@ -350,8 +367,8 @@
         <connection>scm:git:git://github.com/hendriks73/casampledsp.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/hendriks73/casampledsp.git</developerConnection>
         <url>https://github.com/hendriks73/casampledsp/tree/main</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
@@ -361,40 +378,99 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        
-        <arch>x86_64</arch>
-        <mmacosx-version-min>10.7</mmacosx-version-min>
-        <!-- For newer XCode versions: -->
-        <!-- <isysroot>/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/</isysroot> -->
-        <isysroot>/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/</isysroot>
+        <!-- alias, because of http://maven.apache.org/plugins/maven-site-plugin/examples/creating-content.html#Filtering -->
+        <projectversion>${project.version}</projectversion>
+        <central.autoPublish>true</central.autoPublish>
+
         <!-- override with -D on commandline to pass additional flags, like -DDEBUG via the cflags property -->
-        <cflags />
-        <!-- Custom JDK: -->
-        <darwin.headers.jni>${env.JAVA_HOME}/include/</darwin.headers.jni>
+        <cflags/>
+
+        <arch>x86_64</arch>
+        <mmacosx-version-min>11.0</mmacosx-version-min>
+        <isysroot>/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/</isysroot>
+        <codesign.identity>Developer ID Application: Jalulo UG (haftungsbeschrankt) (2J6368YSP2)</codesign.identity>
+        <doxygen>doxygen</doxygen>
+
+        <!-- JNI headers -->
+        <headers.jni>${env.JAVA_HOME}/include/</headers.jni>
+
         <!-- add -DDEBUG to enable standard out debug messages -->
-        <darwin.compiler.startoptions>${cflags} -stdlib=libc++ -DTARGET_OS_MAC -Wall -arch ${arch} -fmessage-length=0 -pipe -Wno-trigraphs
-            -fpascal-strings -fasm-blocks -Os -isysroot ${isysroot}
-            -F${isysroot}System/Library/Frameworks/JavaVM.framework/Frameworks
-            -mmacosx-version-min=${mmacosx-version-min}</darwin.compiler.startoptions>
+        <darwin.compiler.startoptions>${cflags} -DTARGET_OS_MAC -arch ${arch} -fmessage-length=0
+            -pipe -Wno-trigraphs
+            -O3 -Wunused-variable -isysroot ${isysroot}
+            -mmacosx-version-min=${mmacosx-version-min} -Wmost
+            -Wno-four-char-constants -Wno-unknown-pragmas</darwin.compiler.startoptions>
         <darwin.linker.startoptions>-arch ${arch}
             -dynamiclib
             -lc++
             -isysroot ${isysroot}
             -mmacosx-version-min=${mmacosx-version-min}
-            -F${isysroot}System/Library/Frameworks/JavaVM.framework/Frameworks
             -framework CoreFoundation
             -framework AudioToolbox
-            -single_module -compatibility_version 1 -current_version 1</darwin.linker.startoptions>
-        <darwin.linker.endoptions />
-        <!--
-        <darwin.compiler.startoptions>${cflags} -x c++ -DTARGET_OS_MAC -arch ${arch} -Wall -fmessage-length=0 -pipe -Wno-trigraphs -fpascal-strings -fasm-blocks -Os -Wunused-variable -isysroot ${isysroot} -mmacosx-version-min=${mmacosx-version-min} -Wmost -Wno-four-char-constants -Wno-unknown-pragmas</darwin.compiler.startoptions>
-        <darwin.linker.startoptions>-arch ${arch} -dynamiclib -isysroot ${isysroot} -mmacosx-version-min=${mmacosx-version-min} -lstdc++ -framework CoreFoundation -framework AudioToolbox -single_module -compatibility_version 1 -current_version 1</darwin.linker.startoptions>
-        -->
-        <!-- alias, because of http://maven.apache.org/plugins/maven-site-plugin/examples/creating-content.html#Filtering -->
-        <projectversion>${project.version}</projectversion>
+            -compatibility_version 1 -current_version 1</darwin.linker.startoptions>
+        <darwin.linker.endoptions/>
     </properties>
 
     <profiles>
+        <profile>
+            <id>spotless</id>
+            <activation>
+                <jdk>[17,)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.diffplug.spotless</groupId>
+                        <artifactId>spotless-maven-plugin</artifactId>
+                        <configuration>
+                            <java>
+                                <excludes>
+                                    <exclude>**/*.c</exclude>
+                                    <exclude>**/*.h</exclude>
+                                    <exclude>**/*.cpp</exclude>
+                                    <exclude>**/*.cc</exclude>
+                                    <exclude>**/*.cxx</exclude>
+                                    <exclude>**/*.m</exclude>
+                                    <exclude>**/*.mm</exclude>
+                                </excludes>
+                                <googleJavaFormat/>
+                            </java>
+                            <formats>
+                                <format>
+                                    <includes>
+                                        <include>**/*.yaml</include>
+                                        <include>**/*.yml</include>
+                                    </includes>
+                                    <trimTrailingWhitespace/>
+                                    <endWithNewline/>
+                                </format>
+                                <format>
+                                    <includes>
+                                        <include>src/**/*.html</include>
+                                        <include>src/**/*.css</include>
+                                        <include>src/**/*.xml</include>
+                                    </includes>
+                                    <trimTrailingWhitespace/>
+                                    <endWithNewline/>
+                                    <indent>
+                                        <spaces>true</spaces>
+                                        <spacesPerTab>4</spacesPerTab>
+                                    </indent>
+                                </format>
+                            </formats>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <profile>
             <id>release</id>
             <activation>
@@ -408,7 +484,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -426,19 +501,18 @@
                         </configuration>
                     </plugin>
                     <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.8</version>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.10.0</version>
                         <extensions>true</extensions>
                         <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>${central.autoPublish}</autoPublish>
                         </configuration>
                     </plugin>
                 </plugins>
             </build>
         </profile>
     </profiles>
-    
+
 </project>

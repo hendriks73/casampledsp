@@ -1,6 +1,11 @@
+- 0.9.33
+  - Modernized C++ code.
+  - Support emojis in file paths.
+
+
 - 0.9.32
   - Updated several GH actions.
-  - Fixed packet count for `CACodecInputStream` for macOS 15/Sequioa
+  - Fixed packet count for `CACodecInputStream` for macOS 15/Sequioa.
 
  
 - 0.9.31
@@ -14,7 +19,7 @@
 
 - 0.9.29
 
-  - Added signature for native macOS libs
+  - Added signature for native macOS libs.
 
 
 - 0.9.27

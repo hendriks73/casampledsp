@@ -20,12 +20,12 @@
  */
 package com.tagtraum.casampledsp;
 
-import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 /**
  * Audio stream capable of decoding a stream via Core Audio.
@@ -34,81 +34,115 @@ import java.util.concurrent.TimeUnit;
  */
 public class CAStreamInputStream extends CANativePeerInputStream {
 
-    /**
-     * Java audio buffer. We keep this smaller to make sure that its content still fits into the native buffer.
-     */
-    private final byte[] streamReadBuffer = new byte[4 * 1024];
-    private final InputStream stream;
+  /**
+   * Default native buffer size for stream-based (non-{@code file:}) sources, in bytes (64 KB).
+   *
+   * <p>Smaller than the file default because streams are packet-driven: Core Audio calls back with
+   * one packet's worth of data at a time, so a 64 KB accumulation buffer is more than sufficient
+   * and keeps latency low.
+   */
+  public static final int DEFAULT_STREAM_BUFFER_SIZE = 64 * 1024;
 
-    /**
-     * Opens a codec stream with the default buffer size given in {@link #DEFAULT_BUFFER_SIZE}.
-     *
-     * @param hint format hint
-     * @param stream stream
-     */
-    public CAStreamInputStream(final InputStream stream, final int hint) throws IOException, UnsupportedAudioFileException {
-        this(stream, hint, DEFAULT_BUFFER_SIZE);
+  /**
+   * System property name to override {@link #DEFAULT_STREAM_BUFFER_SIZE}, in bytes.
+   *
+   * <p>Example: {@code -Dcasampledsp.streamBufferSize=32768} sets a 32 KB buffer.
+   */
+  public static final String STREAM_BUFFER_SIZE_PROPERTY = "casampledsp.streamBufferSize";
+
+  static int getDefaultStreamBufferSize() {
+    try {
+      final String prop = System.getProperty(STREAM_BUFFER_SIZE_PROPERTY);
+      if (prop != null) {
+        final int v = Integer.parseInt(prop.trim());
+        if (v > 0) return v;
+      }
+    } catch (NumberFormatException ignored) {
     }
+    return DEFAULT_STREAM_BUFFER_SIZE;
+  }
 
-    /**
-     * Opens a stream with the given buffer size.
-     *
-     * @param hint format hint
-     * @param stream stream
-     * @param bufferSize buffer size to use when reading
-     */
-    public CAStreamInputStream(final InputStream stream, final int hint, final int bufferSize) throws IOException, UnsupportedAudioFileException {
-        this.nativeBuffer = ByteBuffer.allocateDirect(bufferSize);
-        ((Buffer)this.nativeBuffer).limit(0);
-        this.pointer = open(hint, bufferSize);
-        this.stream  = stream;
-    }
+  /**
+   * Java audio buffer. We keep this smaller to make sure that its content still fits into the
+   * native buffer.
+   */
+  private final byte[] streamReadBuffer = new byte[4 * 1024];
 
-    /**
-     * Always returns <code>false</code>.
-     * Stream based {@link CANativePeerInputStream}s are not seekable.
-     *
-     * @return false
-     */
-    @Override
-    public boolean isSeekable() {
-        return false;
-    }
+  private final InputStream stream;
 
-    /**
-     * Always throws {@link UnsupportedOperationException}, because stream based
-     * {@link CANativePeerInputStream}s are not seekable.
-     *
-     * @param time time
-     * @param timeUnit time unit
-     * @throws UnsupportedOperationException always
-     * @throws IOException never
-     */
-    @Override
-    public void seek(final long time, final TimeUnit timeUnit) throws UnsupportedOperationException, IOException {
-        throw new UnsupportedOperationException("Seeking is not supported.");
-    }
+  /**
+   * Opens a codec stream with the default buffer size given in {@link #DEFAULT_BUFFER_SIZE}.
+   *
+   * @param hint format hint
+   * @param stream stream
+   */
+  public CAStreamInputStream(final InputStream stream, final int hint)
+      throws IOException, UnsupportedAudioFileException {
+    this(stream, hint, getDefaultStreamBufferSize());
+  }
 
-    @Override
-    protected void fillNativeBuffer() throws IOException {
-        if (isOpen()) {
-            // make sure we are at the start of the native buffer, before we fill it
-            ((Buffer)this.nativeBuffer).limit(0);
-            // read data, until we have a new limit or we reached the end of the file
-            int justRead;
-            while ((justRead = stream.read(streamReadBuffer)) != -1) {
-                fillNativeBuffer(pointer, streamReadBuffer, justRead);
-                if (nativeBuffer.hasRemaining()) {
-                    // we have new data, let's break
-                    break;
-                }
-            }
+  /**
+   * Opens a stream with the given buffer size.
+   *
+   * @param hint format hint
+   * @param stream stream
+   * @param bufferSize buffer size to use when reading
+   */
+  public CAStreamInputStream(final InputStream stream, final int hint, final int bufferSize)
+      throws IOException, UnsupportedAudioFileException {
+    this.nativeBuffer = ByteBuffer.allocateDirect(bufferSize);
+    ((Buffer) this.nativeBuffer).limit(0);
+    this.pointer = open(hint, bufferSize);
+    this.stream = stream;
+  }
+
+  /**
+   * Always returns <code>false</code>. Stream based {@link CANativePeerInputStream}s are not
+   * seekable.
+   *
+   * @return false
+   */
+  @Override
+  public boolean isSeekable() {
+    return false;
+  }
+
+  /**
+   * Always throws {@link UnsupportedOperationException}, because stream based {@link
+   * CANativePeerInputStream}s are not seekable.
+   *
+   * @param time time
+   * @param timeUnit time unit
+   * @throws UnsupportedOperationException always
+   * @throws IOException never
+   */
+  @Override
+  public void seek(final long time, final TimeUnit timeUnit)
+      throws UnsupportedOperationException, IOException {
+    throw new UnsupportedOperationException("Seeking is not supported.");
+  }
+
+  @Override
+  protected void fillNativeBuffer() throws IOException {
+    if (isOpen()) {
+      // make sure we are at the start of the native buffer, before we fill it
+      ((Buffer) this.nativeBuffer).limit(0);
+      // read data, until we have a new limit or we reached the end of the file
+      int justRead;
+      while ((justRead = stream.read(streamReadBuffer)) != -1) {
+        fillNativeBuffer(pointer, streamReadBuffer, justRead);
+        if (nativeBuffer.hasRemaining()) {
+          // we have new data, let's break
+          break;
         }
+      }
     }
+  }
 
-    private native void fillNativeBuffer(final long audioFileID, final byte[] buf, final int length) throws IOException;
-    private native long open(final int hint, final int bufferSize) throws IOException;
-    protected native void close(final long pointer) throws IOException;
+  private native void fillNativeBuffer(final long audioFileID, final byte[] buf, final int length)
+      throws IOException;
 
+  private native long open(final int hint, final int bufferSize) throws IOException;
 
+  protected native void close(final long pointer) throws IOException;
 }
