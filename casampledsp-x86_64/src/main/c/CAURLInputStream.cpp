@@ -23,22 +23,6 @@
 #include "com_tagtraum_casampledsp_CAURLInputStream.h"
 #include "CAUtils.h"
 
-static jfieldID nativeBufferFID = nullptr;
-static jmethodID rewindMID      = nullptr;
-static jmethodID limitMID       = nullptr;
-
-/**
- * Init static method and field ids for Java methods/fields, if we don't have them already.
- */
-static void init_ids(JNIEnv *env, jobject stream) {
-    if (nativeBufferFID == nullptr || rewindMID == nullptr || limitMID == nullptr) {
-        nativeBufferFID = env->GetFieldID(env->GetObjectClass(stream), "nativeBuffer", "Ljava/nio/ByteBuffer;");
-        jclass bufferClass = env->FindClass("java/nio/Buffer");
-        rewindMID = env->GetMethodID(bufferClass, "rewind", "()Ljava/nio/Buffer;");
-        limitMID  = env->GetMethodID(bufferClass, "limit",  "(I)Ljava/nio/Buffer;");
-    }
-}
-
 
 /**
  * Callback to fill the native buffer.
@@ -53,8 +37,6 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_fillNative
     CAAudioFileIO *afio = reinterpret_cast<CAAudioFileIO*>(afioPtr);
     UInt32 ioNumberDataPackets;
     UInt32 outNumBytes = 0;
-
-    init_ids(env, stream);
 
     byteBuffer = env->GetObjectField(stream, nativeBufferFID);
     if (byteBuffer == nullptr) {
@@ -90,7 +72,7 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_fillNative
     // we already wrote to the buffer, now we still need to
     // set new bytebuffer limit and position to 0.
     env->CallObjectMethod(byteBuffer, rewindMID);
-    env->CallObjectMethod(byteBuffer, limitMID, static_cast<jint>(outNumBytes));
+    env->CallObjectMethod(byteBuffer, setLimitMID, static_cast<jint>(outNumBytes));
 
 bail:
     return;

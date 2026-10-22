@@ -93,6 +93,9 @@ All C++ source is in `casampledsp-x86_64/src/main/c/` and shared by both archite
 - **`CACodecInputStream.cpp`** — `AudioConverterRef` setup and the `ComplexInputDataProc` callback that feeds data from the source Java stream into Core Audio's converter
 - **`CAURLInputStream.cpp`** / **`CAStreamInputStream.cpp`** — file and stream readers using `AudioFileID` and `AudioFileStreamID` respectively
 - **`CAAudioFileReader.cpp`** — reads file properties (format, sample rate, duration) without decoding
+- **`CANativePeerInputStream.cpp`** — defines the JNI field/method IDs shared by all stream classes (`nativeBufferFID`, `fillNativeBufferMID`, `Buffer` methods; declared `extern` in `CAUtils.h`)
+
+Cached JNI IDs are set by `private static native void initIDs()`, called from the static initializer of `CANativePeerInputStream`. JVM class initialization makes this happen exactly once, before any subclass can call native code. Never cache IDs lazily on the first native call: that is a data race, and a thread can see a `nullptr` ID and crash the JVM. `CAAudioFileReader` forces this initialization and reports the library as not loaded if it fails (e.g. an outdated dylib without `initIDs`).
 
 C++ style: structs zero-initialised with `new T{}`, `nullptr` throughout, `reinterpret_cast` for pointer↔`jlong`, `static_cast` for numeric conversions. The `goto bail` pattern is used for JNI error cleanup; all locals are declared before the first `goto`.
 

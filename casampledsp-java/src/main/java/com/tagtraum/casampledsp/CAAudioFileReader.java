@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -43,8 +44,21 @@ public class CAAudioFileReader extends AudioFileReader {
   private static final boolean nativeLibraryLoaded;
 
   static {
-    // Ensure JNI library is loaded
-    nativeLibraryLoaded = CANativeLibraryLoader.loadLibrary();
+    // Ensure JNI library is loaded and JNI ids are cached
+    boolean loaded = CANativeLibraryLoader.loadLibrary();
+    if (loaded) {
+      try {
+        CANativePeerInputStream.initialize();
+      } catch (LinkageError e) {
+        // e.g. an outdated native library without initIDs()
+        Logger.getLogger(CAAudioFileReader.class.getName())
+            .severe(
+                "Incompatible native library 'casampledsp'. CASampledSP will be dysfunctional: "
+                    + e);
+        loaded = false;
+      }
+    }
+    nativeLibraryLoaded = loaded;
   }
 
   private static final Map<URL, AudioFileFormat> cache =

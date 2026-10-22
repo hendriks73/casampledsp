@@ -34,9 +34,25 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 public abstract class CANativePeerInputStream extends InputStream {
 
   static {
-    // Ensure JNI library is loaded
-    CANativeLibraryLoader.loadLibrary();
+    // Ensure JNI library is loaded, then cache JNI ids before any subclass can call native code
+    if (CANativeLibraryLoader.loadLibrary()) {
+      initIDs();
+    }
   }
+
+  /**
+   * Caches JNI field and method IDs used by native code. Called exactly once from the static
+   * initializer, which the JVM serializes, so that no thread can use a native peer before the IDs
+   * are set.
+   */
+  private static native void initIDs();
+
+  /**
+   * Forces initialization of this class, i.e. loading of the native library and caching of JNI IDs.
+   *
+   * @throws LinkageError if the native library is incompatible
+   */
+  static void initialize() {}
 
   /**
    * Default read buffer size in bytes (1 MB). Used as fallback when no more-specific default

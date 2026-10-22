@@ -23,12 +23,6 @@
 #include "com_tagtraum_casampledsp_CACodecInputStream.h"
 #include "CAUtils.h"
 
-static jfieldID  nativeBufferFID     = nullptr;
-static jmethodID rewindMID           = nullptr;
-static jmethodID limitMID            = nullptr;
-static jmethodID fillNativeBufferMID = nullptr;
-static jmethodID hasRemainingMID     = nullptr;
-static jmethodID positionMID         = nullptr;
 
 
 /**
@@ -64,7 +58,7 @@ static OSStatus CACodecInputStream_ComplexInputDataProc(
         goto bail;
     }
     // move position in java bytebuffer
-    acio->env->CallIntMethod(byteBuffer, positionMID, static_cast<jint>(acio->sourceAudioIO->srcBufferSize));
+    acio->env->CallObjectMethod(byteBuffer, setPositionMID, static_cast<jint>(acio->sourceAudioIO->srcBufferSize));
     ioData->mNumberBuffers                  = 1;
     ioData->mBuffers[0].mNumberChannels     = acio->sourceAudioIO->srcFormat.mChannelsPerFrame;
     ioData->mBuffers[0].mDataByteSize       = acio->sourceAudioIO->srcBufferSize;
@@ -165,13 +159,13 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_fillNati
     fprintf(stderr, "CACodecInputStream fillNativeBuffer limit=%i\n", limit);
 #endif
     acio->srcBufferSize = static_cast<UInt32>(limit);
-    env->CallObjectMethod(byteBuffer, limitMID, static_cast<jint>(limit));
+    env->CallObjectMethod(byteBuffer, setLimitMID, static_cast<jint>(limit));
     env->CallObjectMethod(byteBuffer, rewindMID);
     if (acio->sourceAudioIO->frameOffset != 0) {
 #ifdef DEBUG
         fprintf(stderr, "Need to adjust position to frame: %i\n", acio->sourceAudioIO->frameOffset);
         fprintf(stderr, "acio->srcFormat.mBytesPerFrame  : %i\n", acio->srcFormat.mBytesPerFrame);
-        env->CallIntMethod(byteBuffer, positionMID,
+        env->CallObjectMethod(byteBuffer, setPositionMID,
             static_cast<jint>(acio->srcFormat.mBytesPerFrame * acio->sourceAudioIO->frameOffset));
 #endif
         acio->sourceAudioIO->frameOffset = 0;
@@ -206,18 +200,6 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_open(JN
     jstring   encodingNameStr  = nullptr;
     const char *encodingName   = nullptr;
     bool isFloatTarget         = false;
-
-    if (fillNativeBufferMID == nullptr || hasRemainingMID == nullptr || positionMID == nullptr
-            || nativeBufferFID == nullptr || rewindMID == nullptr || limitMID == nullptr) {
-        jclass nativePeerClass = env->FindClass("com/tagtraum/casampledsp/CANativePeerInputStream");
-        fillNativeBufferMID = env->GetMethodID(nativePeerClass, "fillNativeBuffer", "()V");
-        nativeBufferFID     = env->GetFieldID(nativePeerClass,  "nativeBuffer", "Ljava/nio/ByteBuffer;");
-        jclass bufferClass  = env->FindClass("java/nio/Buffer");
-        hasRemainingMID = env->GetMethodID(bufferClass, "hasRemaining", "()Z");
-        positionMID     = env->GetMethodID(bufferClass, "position",     "(I)Ljava/nio/Buffer;");
-        rewindMID       = env->GetMethodID(bufferClass, "rewind",       "()Ljava/nio/Buffer;");
-        limitMID        = env->GetMethodID(bufferClass, "limit",        "(I)Ljava/nio/Buffer;");
-    }
 
     // get java-managed byte buffer reference
     byteBuffer = env->GetObjectField(stream, nativeBufferFID);

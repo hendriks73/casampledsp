@@ -23,29 +23,6 @@
 #include "com_tagtraum_casampledsp_CAStreamInputStream.h"
 #include "CAUtils.h"
 
-static jfieldID  nativeBufferFieldID  = nullptr;
-static jmethodID rewindMethodID       = nullptr;
-static jmethodID setLimitMethodID     = nullptr;
-static jmethodID getLimitMethodID     = nullptr;
-static jmethodID setPositionMethodID  = nullptr;
-static jmethodID getPositionMethodID  = nullptr;
-
-/**
- * Init static method and field ids for Java methods/fields, if we don't have them already.
- */
-static void init_ids(JNIEnv *env, jobject stream) {
-    if (nativeBufferFieldID == nullptr || rewindMethodID == nullptr || setLimitMethodID == nullptr
-            || getLimitMethodID == nullptr || getPositionMethodID == nullptr || setPositionMethodID == nullptr) {
-        nativeBufferFieldID = env->GetFieldID(env->GetObjectClass(stream), "nativeBuffer", "Ljava/nio/ByteBuffer;");
-        jclass bufferClass  = env->FindClass("java/nio/Buffer");
-        rewindMethodID      = env->GetMethodID(bufferClass, "rewind",    "()Ljava/nio/Buffer;");
-        setLimitMethodID    = env->GetMethodID(bufferClass, "limit",     "(I)Ljava/nio/Buffer;");
-        getLimitMethodID    = env->GetMethodID(bufferClass, "limit",     "()I");
-        getPositionMethodID = env->GetMethodID(bufferClass, "position",  "()I");
-        setPositionMethodID = env->GetMethodID(bufferClass, "position",  "(I)Ljava/nio/Buffer;");
-    }
-}
-
 
 /**
  * Packet callback for AudioFileStreamOpen used in open().
@@ -68,12 +45,12 @@ static void CAStreamInputStream_PacketsProc(
     int     oldPackets    = 0;
     AudioStreamPacketDescription *newPktDescs = nullptr;
 
-    byteBuffer = asio->env->GetObjectField(asio->javaInstance, nativeBufferFieldID);
+    byteBuffer = asio->env->GetObjectField(asio->javaInstance, nativeBufferFID);
     if (byteBuffer == nullptr) {
         throwIOExceptionIfError(asio->env, 1, "Failed to obtain native buffer");
         goto bail;
     }
-    limit = asio->env->CallIntMethod(byteBuffer, getLimitMethodID);
+    limit = asio->env->CallIntMethod(byteBuffer, getLimitMID);
 
     asio->srcBuffer = static_cast<char*>(asio->env->GetDirectBufferAddress(byteBuffer));
     capacity        = asio->env->GetDirectBufferCapacity(byteBuffer);
@@ -96,8 +73,8 @@ static void CAStreamInputStream_PacketsProc(
     asio->srcBufferSize  = inNumberBytes + limit;
     totalPackets         = static_cast<int>(asio->pos - asio->lastPos);
 
-    asio->env->CallObjectMethod(byteBuffer, setPositionMethodID, 0);
-    asio->env->CallObjectMethod(byteBuffer, setLimitMethodID, static_cast<jint>(inNumberBytes + limit));
+    asio->env->CallObjectMethod(byteBuffer, setPositionMID, 0);
+    asio->env->CallObjectMethod(byteBuffer, setLimitMID, static_cast<jint>(inNumberBytes + limit));
 
     if (inPacketDescriptions) {
         newPktDescs = new AudioStreamPacketDescription[totalPackets]{};
@@ -208,7 +185,6 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_open(J
     int res = 0;
     CAAudioStreamIO *asio = new CAAudioStreamIO{};  // zero-initializes all fields
 
-    init_ids(env, stream);
 
     asio->srcBufferSize = static_cast<UInt32>(bufferSize);
     asio->env           = env;
