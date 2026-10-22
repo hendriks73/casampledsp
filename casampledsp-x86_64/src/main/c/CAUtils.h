@@ -87,6 +87,19 @@ struct CAAudioStreamIO:CAAudioIO
 	AudioFileStreamID   asid;       ///< Stream id
 };
 
+/*
+ * Field and method ids shared by all native peer streams. Set once by
+ * CANativePeerInputStream.initIDs() (see CANativePeerInputStream.cpp).
+ */
+extern jfieldID  nativeBufferFID;      ///< CANativePeerInputStream.nativeBuffer
+extern jmethodID fillNativeBufferMID;  ///< CANativePeerInputStream.fillNativeBuffer()
+extern jmethodID rewindMID;            ///< Buffer.rewind()
+extern jmethodID hasRemainingMID;      ///< Buffer.hasRemaining()
+extern jmethodID getLimitMID;          ///< Buffer.limit()
+extern jmethodID setLimitMID;          ///< Buffer.limit(int)
+extern jmethodID getPositionMID;       ///< Buffer.position()
+extern jmethodID setPositionMID;       ///< Buffer.position(int)
+
 void throwUnsupportedAudioFileExceptionIfError(JNIEnv *, int, const char*);
 
 void throwIOExceptionIfError(JNIEnv *, int, const char*);

@@ -38,8 +38,8 @@ public class CAFormatConversionProvider extends FormatConversionProvider {
   private static final boolean nativeLibraryLoaded;
 
   static {
-    // Ensure JNI library is loaded
-    nativeLibraryLoaded = CANativeLibraryLoader.loadLibrary();
+    // Ensure JNI library is loaded and JNI ids are cached
+    nativeLibraryLoaded = CANativeLibraryLoader.loadLibraryAndInitIDs();
   }
 
   @Override

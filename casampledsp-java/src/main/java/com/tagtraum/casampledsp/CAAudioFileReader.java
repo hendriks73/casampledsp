@@ -43,8 +43,8 @@ public class CAAudioFileReader extends AudioFileReader {
   private static final boolean nativeLibraryLoaded;
 
   static {
-    // Ensure JNI library is loaded
-    nativeLibraryLoaded = CANativeLibraryLoader.loadLibrary();
+    // Ensure JNI library is loaded and JNI ids are cached
+    nativeLibraryLoaded = CANativeLibraryLoader.loadLibraryAndInitIDs();
   }
 
   private static final Map<URL, AudioFileFormat> cache =

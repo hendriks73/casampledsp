@@ -30,6 +30,7 @@ All tests live in `src/test/java/com/tagtraum/casampledsp/`. They require both n
 | `TestCAURLInputStream` | URL and file opening, seeking |
 | `TestCAStreamInputStream` | Stream-based decoding |
 | `TestCANativeLibraryLoader` | Library extraction and loading |
+| `TestConcurrentFirstUse` | Spawns fresh child JVMs that open/decode from several threads at once, so first native use happens concurrently |
 
 ### PCM_FLOAT test coverage
 
