@@ -8,6 +8,7 @@
   - `getAudioInputStream(URL, int)` now uses the given buffer size for files, too.
   - Empty streams now cause an `UnsupportedAudioFileException` instead of a native out-of-bounds read.
   - Fixed native memory leak when `CACodecInputStream` rejects a target format.
+  - Fixed `seek()` landing up to one packet early (e.g. up to 1152 frames for MP3, 4096 for ALAC) in release builds.
   - Fixed possible JVM crash when several threads decode concurrently right after the native library is loaded.
   - C-Docs (Doxygen) are generated again when publishing the site; Doxygen is no longer needed for regular builds.
 

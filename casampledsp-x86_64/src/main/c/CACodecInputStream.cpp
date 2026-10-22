@@ -102,6 +102,8 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_fillNati
 
     int res = 0;
     int limit = 0;
+    int skipBytes = 0;
+    UInt32 capacity = 0;
     UInt32 ioOutputDataPacketSize;
     CAAudioConverterIO *acio = reinterpret_cast<CAAudioConverterIO*>(converterPtr);
     AudioBufferList outOutputData;
@@ -116,68 +118,83 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_fillNati
     }
 
     // get pointer to our java managed bytebuffer
-    acio->srcBuffer     = static_cast<char*>(env->GetDirectBufferAddress(byteBuffer));
-    acio->srcBufferSize = static_cast<UInt32>(env->GetDirectBufferCapacity(byteBuffer));
+    acio->srcBuffer = static_cast<char*>(env->GetDirectBufferAddress(byteBuffer));
+    capacity        = static_cast<UInt32>(env->GetDirectBufferCapacity(byteBuffer));
     if (acio->srcBuffer == nullptr) {
         throwIOExceptionIfError(env, 1, "Failed to obtain native buffer address for this codec");
         goto bail;
     }
-    ioOutputDataPacketSize                  = acio->srcBufferSize / acio->srcFormat.mBytesPerPacket;
-    outOutputData.mNumberBuffers            = 1;
-    outOutputData.mBuffers[0].mNumberChannels = acio->srcFormat.mChannelsPerFrame;
-    outOutputData.mBuffers[0].mDataByteSize = acio->srcBufferSize;
-    outOutputData.mBuffers[0].mData         = acio->srcBuffer;
+
+    // after a seek, decode again if all decoded frames precede the seek target,
+    // as an empty buffer signals the end of the stream to Java
+    do {
+        acio->srcBufferSize                       = capacity;
+        ioOutputDataPacketSize                    = acio->srcBufferSize / acio->srcFormat.mBytesPerPacket;
+        outOutputData.mNumberBuffers              = 1;
+        outOutputData.mBuffers[0].mNumberChannels = acio->srcFormat.mChannelsPerFrame;
+        outOutputData.mBuffers[0].mDataByteSize   = acio->srcBufferSize;
+        outOutputData.mBuffers[0].mData           = acio->srcBuffer;
 
 #ifdef DEBUG
-    fprintf(stderr, "pre AudioConverterFillComplexBuffer\n");
+        fprintf(stderr, "pre AudioConverterFillComplexBuffer\n");
 #endif
-    res = AudioConverterFillComplexBuffer(acio->acref,
-                                          CACodecInputStream_ComplexInputDataProc,
-                                          acio,
-                                          &ioOutputDataPacketSize,
-                                          &outOutputData,
-                                          acio->pktDescs);
+        res = AudioConverterFillComplexBuffer(acio->acref,
+                                              CACodecInputStream_ComplexInputDataProc,
+                                              acio,
+                                              &ioOutputDataPacketSize,
+                                              &outOutputData,
+                                              acio->pktDescs);
 #ifdef DEBUG
-    fprintf(stderr, "post AudioConverterFillComplexBuffer\n");
+        fprintf(stderr, "post AudioConverterFillComplexBuffer\n");
 #endif
-    if (res) {
-        // keep an exception already thrown by the source stream in the callback
-        if (!env->ExceptionCheck()) {
-            throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to fill complex audio buffer");
+        if (res) {
+            // keep an exception already thrown by the source stream in the callback
+            if (!env->ExceptionCheck()) {
+                throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to fill complex audio buffer");
+            }
+            goto bail;
         }
-        goto bail;
-    }
 
-    // we already wrote to the buffer, now we still need to
-    // set new bytebuffer limit and position to 0.
-    acio->lastPos = acio->pos;
-    acio->pos    += ioOutputDataPacketSize;
+        // we already wrote to the buffer, now we still need to
+        // set new bytebuffer limit and position.
+        acio->lastPos = acio->pos;
+        acio->pos    += ioOutputDataPacketSize;
 #ifdef DEBUG
-    fprintf(stderr, "CACodecInputStream fillNativeBuffer ioOutputDataPacketSize=%i\n", ioOutputDataPacketSize);
-    fprintf(stderr, "CACodecInputStream fillNativeBuffer acio->srcFormat.mBytesPerPacket=%i\n", acio->srcFormat.mBytesPerPacket);
+        fprintf(stderr, "CACodecInputStream fillNativeBuffer ioOutputDataPacketSize=%i\n", ioOutputDataPacketSize);
+        fprintf(stderr, "CACodecInputStream fillNativeBuffer acio->srcFormat.mBytesPerPacket=%i\n", acio->srcFormat.mBytesPerPacket);
 #endif
-    if (acio->srcFormat.mBytesPerPacket != 0) {
-        limit = static_cast<int>(ioOutputDataPacketSize * acio->srcFormat.mBytesPerPacket);
-    } else {
-        for (UInt32 i = 0; i < ioOutputDataPacketSize; i++) {
-            limit += static_cast<int>(acio->pktDescs[i].mDataByteSize);
+        limit = 0;
+        if (acio->srcFormat.mBytesPerPacket != 0) {
+            limit = static_cast<int>(ioOutputDataPacketSize * acio->srcFormat.mBytesPerPacket);
+        } else {
+            for (UInt32 i = 0; i < ioOutputDataPacketSize; i++) {
+                limit += static_cast<int>(acio->pktDescs[i].mDataByteSize);
+            }
         }
-    }
 #ifdef DEBUG
-    fprintf(stderr, "CACodecInputStream fillNativeBuffer limit=%i\n", limit);
+        fprintf(stderr, "CACodecInputStream fillNativeBuffer limit=%i\n", limit);
 #endif
+
+        // drop the decoded frames that precede the seek target in its packet
+        skipBytes = 0;
+        if (acio->skipFrames != 0 && acio->srcFormat.mBytesPerFrame != 0) {
+            const UInt32 decodedFrames = static_cast<UInt32>(limit) / acio->srcFormat.mBytesPerFrame;
+            const UInt32 skippedFrames = acio->skipFrames < decodedFrames ? acio->skipFrames : decodedFrames;
+            skipBytes         = static_cast<int>(skippedFrames * acio->srcFormat.mBytesPerFrame);
+            acio->skipFrames -= skippedFrames;
+#ifdef DEBUG
+            fprintf(stderr, "Skipped frames after seek: %i, still to skip: %i\n", skippedFrames, acio->skipFrames);
+#endif
+        }
+    } while (limit != 0 && skipBytes == limit);
+
+    if (limit == 0) {
+        // end of stream, nothing left to skip
+        acio->skipFrames = 0;
+    }
     acio->srcBufferSize = static_cast<UInt32>(limit);
     env->CallObjectMethod(byteBuffer, setLimitMID, static_cast<jint>(limit));
-    env->CallObjectMethod(byteBuffer, rewindMID);
-    if (acio->sourceAudioIO->frameOffset != 0) {
-#ifdef DEBUG
-        fprintf(stderr, "Need to adjust position to frame: %i\n", acio->sourceAudioIO->frameOffset);
-        fprintf(stderr, "acio->srcFormat.mBytesPerFrame  : %i\n", acio->srcFormat.mBytesPerFrame);
-        env->CallObjectMethod(byteBuffer, setPositionMID,
-            static_cast<jint>(acio->srcFormat.mBytesPerFrame * acio->sourceAudioIO->frameOffset));
-#endif
-        acio->sourceAudioIO->frameOffset = 0;
-    }
+    env->CallObjectMethod(byteBuffer, setPositionMID, static_cast<jint>(skipBytes));
 
 bail:
     return;
@@ -333,6 +350,16 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_close(JN
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_reset(JNIEnv *env, jobject stream, jlong converterPtr) {
     if (converterPtr == 0) return;
     CAAudioConverterIO *acio = reinterpret_cast<CAAudioConverterIO*>(converterPtr);
+    // The source stream now starts at the packet that contains the seek target.
+    // Take over its frame offset, converted to output frames, so that
+    // fillNativeBuffer() can drop the decoded frames that precede the target.
+    acio->skipFrames = 0;
+    if (acio->sourceAudioIO->frameOffset != 0 && acio->sourceAudioIO->srcFormat.mSampleRate > 0) {
+        acio->skipFrames = static_cast<UInt32>(acio->sourceAudioIO->frameOffset
+                                               * acio->srcFormat.mSampleRate
+                                               / acio->sourceAudioIO->srcFormat.mSampleRate);
+    }
+    acio->sourceAudioIO->frameOffset = 0;
     if (acio->acref != nullptr) {
         int res = AudioConverterReset(acio->acref);
         if (res) {

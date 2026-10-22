@@ -6,6 +6,7 @@
  */
 package com.tagtraum.casampledsp;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -14,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -108,6 +110,80 @@ public class TestCACodecInputStream {
         }
       }
       file.delete();
+    }
+  }
+
+  @Test
+  public void testSeekIntoPacketLossless() throws IOException, UnsupportedAudioFileException {
+    // ALAC packets hold 4096 frames, so 1013 ms lies 3568 frames into a packet
+    assertSeekLandsOnFrame(
+        "test_48k_alac.m4a", 1013, CANativePeerInputStream.DEFAULT_BUFFER_SIZE, 0);
+  }
+
+  @Test
+  public void testSeekIntoPacketWithSmallBuffer()
+      throws IOException, UnsupportedAudioFileException {
+    // 256 frames per buffer, i.e. the frames to skip span several buffer fills
+    assertSeekLandsOnFrame("test_48k_alac.m4a", 1013, 1024, 0);
+  }
+
+  @Test
+  public void testSeekIntoPacketMP3() throws IOException, UnsupportedAudioFileException {
+    // MP3 packets hold 1152 frames, so 1013 ms lies 897 frames into a packet.
+    // Compare only after the decoder has settled, as it starts from scratch after a seek.
+    assertSeekLandsOnFrame("test.mp3", 1013, CANativePeerInputStream.DEFAULT_BUFFER_SIZE, 4096);
+  }
+
+  /**
+   * Seeks to a time that lies within a packet and verifies that decoding continues exactly at the
+   * corresponding frame, by comparing with a full decode of the same file.
+   */
+  private void assertSeekLandsOnFrame(
+      final String filename, final long millis, final int bufferSize, final int compareFromFrame)
+      throws IOException, UnsupportedAudioFileException {
+    final File file = File.createTempFile("assertSeekLandsOnFrame", filename);
+    extractFile(filename, file);
+    try {
+      final int frameSize = 4;
+      final int frames = 4096;
+      final byte[] full = decodeToPcm16(file, -1, bufferSize, Integer.MAX_VALUE);
+      final byte[] seeked =
+          decodeToPcm16(file, millis, bufferSize, (compareFromFrame + frames) * frameSize);
+      final float sampleRate =
+          new CAAudioFileReader().getAudioFileFormat(file).getFormat().getSampleRate();
+      // same rounding as CAURLInputStream.seek()
+      final int seekFrame = (int) ((long) ((double) sampleRate * millis * 1000L) / 1000000L);
+      final int from = (seekFrame + compareFromFrame) * frameSize;
+      assertArrayEquals(
+          Arrays.copyOfRange(full, from, from + frames * frameSize),
+          Arrays.copyOfRange(
+              seeked, compareFromFrame * frameSize, (compareFromFrame + frames) * frameSize));
+    } finally {
+      file.delete();
+    }
+  }
+
+  private static byte[] decodeToPcm16(
+      final File file, final long seekMillis, final int bufferSize, final int maxBytes)
+      throws IOException, UnsupportedAudioFileException {
+    try (final AudioInputStream sourceStream = new CAAudioFileReader().getAudioInputStream(file)) {
+      final float sampleRate = sourceStream.getFormat().getSampleRate();
+      final AudioFormat targetFormat =
+          new AudioFormat(
+              CAAudioFormat.CAEncoding.PCM_SIGNED, sampleRate, 16, 2, 4, sampleRate, false);
+      try (final CACodecInputStream pcmStream =
+          new CACodecInputStream(targetFormat, (CAAudioInputStream) sourceStream, bufferSize)) {
+        if (seekMillis >= 0) {
+          pcmStream.seek(seekMillis, TimeUnit.MILLISECONDS);
+        }
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final byte[] buf = new byte[4096];
+        int justRead;
+        while (out.size() < maxBytes && (justRead = pcmStream.read(buf)) != -1) {
+          out.write(buf, 0, justRead);
+        }
+        return out.toByteArray();
+      }
     }
   }
 
