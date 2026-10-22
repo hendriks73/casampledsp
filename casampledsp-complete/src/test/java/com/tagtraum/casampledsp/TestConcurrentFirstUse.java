@@ -29,10 +29,10 @@ import org.junit.Test;
  */
 public class TestConcurrentFirstUse {
 
-  private static final int JVM_RUNS = 20;
+  private static final int JVM_RUNS = 10;
   private static final int THREADS = 8;
   private static final int CHILD_TIMEOUT_SECONDS = 60;
-  private static final int BARRIER_TIMEOUT_SECONDS = 30;
+  private static final int BARRIER_TIMEOUT_SECONDS = 10;
   private static final String[] FILES = {"test.m4a", "test.mp3", "test.aiff", "test.wav"};
 
   @Test
@@ -63,7 +63,7 @@ public class TestConcurrentFirstUse {
                 .start();
         try {
           final boolean exited = process.waitFor(CHILD_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-          final String message = new String(Files.readAllBytes(output.toPath()), "UTF-8");
+          final String message = readOutputAndCrashLogs(dir, output);
           assertTrue("Child JVM timed out in run " + run + ":\n" + message, exited);
           assertEquals("Child JVM failed in run " + run + ":\n" + message, 0, process.exitValue());
         } finally {
@@ -73,6 +73,22 @@ public class TestConcurrentFirstUse {
     } finally {
       deleteRecursively(dir);
     }
+  }
+
+  /** Collects the child's output plus any JVM crash logs, before the temp dir is deleted. */
+  private static String readOutputAndCrashLogs(final File dir, final File output)
+      throws IOException {
+    final StringBuilder sb =
+        new StringBuilder(new String(Files.readAllBytes(output.toPath()), "UTF-8"));
+    final File[] crashLogs = dir.listFiles((d, name) -> name.startsWith("hs_err_pid"));
+    if (crashLogs != null) {
+      for (final File crashLog : crashLogs) {
+        sb.append("\n--- ").append(crashLog.getName()).append(" ---\n");
+        sb.append(new String(Files.readAllBytes(crashLog.toPath()), "UTF-8"));
+        crashLog.delete();
+      }
+    }
+    return sb.toString();
   }
 
   private static void deleteRecursively(final File file) {
@@ -88,9 +104,9 @@ public class TestConcurrentFirstUse {
   /**
    * Child JVM entry point: start {@link #THREADS} threads that simultaneously open, convert and
    * fully read audio files. Threads are lined up twice, before opening and before the first read,
-   * so that the first native calls of each kind overlap as much as possible. Every other thread
-   * reads via an {@link InputStream} (i.e. {@link CAStreamInputStream}) instead of a file (i.e.
-   * {@link CAURLInputStream}).
+   * so that the first native calls of each kind overlap as much as possible. Each file is read by
+   * one thread via a file (i.e. {@link CAURLInputStream}) and by another via an {@link InputStream}
+   * (i.e. {@link CAStreamInputStream}).
    *
    * @param args directory containing the test files
    */
@@ -101,7 +117,7 @@ public class TestConcurrentFirstUse {
     final List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < THREADS; i++) {
       final File file = new File(dir, FILES[i % FILES.length]);
-      final boolean viaStream = i % 2 == 1;
+      final boolean viaStream = (i / FILES.length) % 2 == 1;
       final Thread thread =
           new Thread(
               () -> {

@@ -91,6 +91,30 @@ public final class CANativeLibraryLoader {
   }
 
   /**
+   * Loads the CASampledSP library and caches its JNI IDs by initializing {@link
+   * CANativePeerInputStream}.
+   *
+   * <p>Deliberately not {@code synchronized}: the static initializer of {@link
+   * CANativePeerInputStream} calls {@link #loadLibrary()}, so holding this class's lock while
+   * waiting for that initializer could deadlock.
+   *
+   * @return true, if the library was loaded and is compatible
+   */
+  static boolean loadLibraryAndInitIDs() {
+    if (!loadLibrary()) return false;
+    try {
+      CANativePeerInputStream.initialize();
+      return true;
+    } catch (LinkageError e) {
+      // e.g. an outdated native library without initIDs()
+      Logger.getLogger(CANativeLibraryLoader.class.getName())
+          .severe(
+              "Incompatible native library 'casampledsp'. CASampledSP will be dysfunctional: " + e);
+      return false;
+    }
+  }
+
+  /**
    * Loads a library.
    *
    * @param libName name of the library, as described in {@link System#loadLibrary(String)} );

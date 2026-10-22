@@ -73,8 +73,9 @@ static void CAStreamInputStream_PacketsProc(
     asio->srcBufferSize  = inNumberBytes + limit;
     totalPackets         = static_cast<int>(asio->pos - asio->lastPos);
 
-    asio->env->CallObjectMethod(byteBuffer, setPositionMID, 0);
-    asio->env->CallObjectMethod(byteBuffer, setLimitMID, static_cast<jint>(inNumberBytes + limit));
+    // this callback may run many times within one native call, so release local refs right away
+    asio->env->DeleteLocalRef(asio->env->CallObjectMethod(byteBuffer, setPositionMID, 0));
+    asio->env->DeleteLocalRef(asio->env->CallObjectMethod(byteBuffer, setLimitMID, static_cast<jint>(inNumberBytes + limit)));
 
     if (inPacketDescriptions) {
         newPktDescs = new AudioStreamPacketDescription[totalPackets]{};
@@ -90,7 +91,9 @@ static void CAStreamInputStream_PacketsProc(
     }
 
 bail:
-    return;
+    if (byteBuffer != nullptr) {
+        asio->env->DeleteLocalRef(byteBuffer);
+    }
 }
 
 

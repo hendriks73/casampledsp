@@ -44,6 +44,11 @@ static OSStatus CACodecInputStream_ComplexInputDataProc(
 
     *ioNumberDataPackets = 0;
     byteBuffer = acio->env->GetObjectField(acio->sourceStream, nativeBufferFID);
+    if (byteBuffer == nullptr) {
+        throwIOExceptionIfError(acio->env, 1, "Failed to get native buffer for source stream");
+        res = 1;
+        goto bail;
+    }
 
     // check whether we have to fill the source's native buffer
     if (acio->env->CallBooleanMethod(byteBuffer, hasRemainingMID) == JNI_FALSE) {
@@ -58,7 +63,7 @@ static OSStatus CACodecInputStream_ComplexInputDataProc(
         goto bail;
     }
     // move position in java bytebuffer
-    acio->env->CallObjectMethod(byteBuffer, setPositionMID, static_cast<jint>(acio->sourceAudioIO->srcBufferSize));
+    acio->env->DeleteLocalRef(acio->env->CallObjectMethod(byteBuffer, setPositionMID, static_cast<jint>(acio->sourceAudioIO->srcBufferSize)));
     ioData->mNumberBuffers                  = 1;
     ioData->mBuffers[0].mNumberChannels     = acio->sourceAudioIO->srcFormat.mChannelsPerFrame;
     ioData->mBuffers[0].mDataByteSize       = acio->sourceAudioIO->srcBufferSize;
@@ -136,7 +141,10 @@ JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_fillNati
     fprintf(stderr, "post AudioConverterFillComplexBuffer\n");
 #endif
     if (res) {
-        throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to fill complex audio buffer");
+        // keep an exception already thrown by the source stream in the callback
+        if (!env->ExceptionCheck()) {
+            throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to fill complex audio buffer");
+        }
         goto bail;
     }
 

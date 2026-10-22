@@ -40,29 +40,33 @@ jmethodID setPositionMID      = nullptr;
  * thread can call into native code. Caching them lazily on first use instead
  * races: another thread may see some ids set and others still nullptr.
  *
- * Returns early with a pending NoSuchFieldError/NoSuchMethodError if a lookup
+ * Bails out with a pending NoSuchFieldError/NoSuchMethodError if a lookup
  * fails, so class initialization fails instead of leaving ids unset.
  */
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CANativePeerInputStream_initIDs(JNIEnv *env, jclass nativePeerClass) {
     jclass bufferClass = nullptr;
 
     nativeBufferFID     = env->GetFieldID(nativePeerClass,  "nativeBuffer", "Ljava/nio/ByteBuffer;");
-    if (nativeBufferFID == nullptr) return;
+    if (nativeBufferFID == nullptr) goto bail;
     fillNativeBufferMID = env->GetMethodID(nativePeerClass, "fillNativeBuffer", "()V");
-    if (fillNativeBufferMID == nullptr) return;
+    if (fillNativeBufferMID == nullptr) goto bail;
 
     bufferClass = env->FindClass("java/nio/Buffer");
-    if (bufferClass == nullptr) return;
+    if (bufferClass == nullptr) goto bail;
     rewindMID       = env->GetMethodID(bufferClass, "rewind",       "()Ljava/nio/Buffer;");
-    if (rewindMID == nullptr) return;
+    if (rewindMID == nullptr) goto bail;
     hasRemainingMID = env->GetMethodID(bufferClass, "hasRemaining", "()Z");
-    if (hasRemainingMID == nullptr) return;
+    if (hasRemainingMID == nullptr) goto bail;
     getLimitMID     = env->GetMethodID(bufferClass, "limit",        "()I");
-    if (getLimitMID == nullptr) return;
+    if (getLimitMID == nullptr) goto bail;
     setLimitMID     = env->GetMethodID(bufferClass, "limit",        "(I)Ljava/nio/Buffer;");
-    if (setLimitMID == nullptr) return;
+    if (setLimitMID == nullptr) goto bail;
     getPositionMID  = env->GetMethodID(bufferClass, "position",     "()I");
-    if (getPositionMID == nullptr) return;
+    if (getPositionMID == nullptr) goto bail;
     setPositionMID  = env->GetMethodID(bufferClass, "position",     "(I)Ljava/nio/Buffer;");
-    env->DeleteLocalRef(bufferClass);
+
+bail:
+    if (bufferClass != nullptr) {
+        env->DeleteLocalRef(bufferClass);
+    }
 }
