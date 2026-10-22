@@ -26,7 +26,7 @@ All tests live in `src/test/java/com/tagtraum/casampledsp/`. They require both n
 | `TestCAAudioFileReader` | Format detection: encoding, sample rate, channels, frame size, duration for all supported formats |
 | `TestCAAudioFormat` | `CAEncoding` and audio format metadata |
 | `TestCAFormatConversionProvider` | `getTargetEncodings`, `getTargetFormats`, `isConversionSupported`, end-to-end conversions |
-| `TestCACodecInputStream` | Direct `CACodecInputStream` conversion tests; PCM_SIGNED and PCM_FLOAT (32-bit, 64-bit) output; sample range and finiteness assertions |
+| `TestCACodecInputStream` | Direct `CACodecInputStream` conversion tests; PCM_SIGNED and PCM_FLOAT (32-bit, 64-bit) output; sample range and finiteness assertions; sample-exact seeking into the middle of a packet |
 | `TestCAURLInputStream` | URL and file opening, seeking |
 | `TestCAStreamInputStream` | Stream-based decoding |
 | `TestCANativeLibraryLoader` | Library extraction and loading |

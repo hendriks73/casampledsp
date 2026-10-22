@@ -69,6 +69,7 @@ struct CAAudioConverterIO:CAAudioIO
     AudioConverterRef   acref;          ///< The used AudioConverter
     jobject             sourceStream;   ///< Source stream object (Java)
     CAAudioIO *         sourceAudioIO;  ///< CAAudioIO of the stream that we want to convert
+    UInt32              skipFrames;     ///< Output frames still to drop after a seek into the middle of a packet
 };
 
 /**
