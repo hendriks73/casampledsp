@@ -524,10 +524,7 @@ public class TestCAAudioFileReader {
       throws IOException, UnsupportedAudioFileException {
     // first copy the file from resources to actual location in temp
     final String filename = "test.mp3";
-    //        final File file = File.createTempFile("testGetAudioFileFormatURL", filename);
-    final File file =
-        new File(
-            "/Users/hendrik/Music/iTunes/iTunes Music/Music/Bush/The Science of Things/11 Letting the Cables Sleep.mp3");
+    final File file = File.createTempFile("testGetAudioInputStreamURLAndRead", filename);
     extractFile(filename, file);
     int bytesRead = 0;
     try {
@@ -558,9 +555,9 @@ public class TestCAAudioFileReader {
         assertTrue(justRead > 0);
         bytesRead += justRead;
       }
-
+      assertTrue(bytesRead > 0);
     } finally {
-      //            file.delete();
+      file.delete();
     }
   }
 
