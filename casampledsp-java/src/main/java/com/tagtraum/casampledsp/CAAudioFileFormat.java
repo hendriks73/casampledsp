@@ -22,6 +22,7 @@ package com.tagtraum.casampledsp;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -99,9 +100,9 @@ public class CAAudioFileFormat extends AudioFileFormat {
     try {
       final URL url = new URL(urlString);
       if ("file".equals(url.getProtocol())) {
-        return (int) new File(url.getFile()).length();
+        return (int) new File(url.toURI()).length();
       }
-    } catch (MalformedURLException e) {
+    } catch (MalformedURLException | URISyntaxException | IllegalArgumentException e) {
       // nothing
     }
     return -1;

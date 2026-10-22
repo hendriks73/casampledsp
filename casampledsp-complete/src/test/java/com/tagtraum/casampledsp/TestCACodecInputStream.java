@@ -711,6 +711,42 @@ public class TestCACodecInputStream {
   }
 
   @Test
+  public void testConvertWavToBigEndianFloat32() throws IOException, UnsupportedAudioFileException {
+    // A big-endian PCM_FLOAT request must produce big-endian samples, not little-endian ones.
+    final byte[] little = decodeWav(false);
+    final byte[] big = decodeWav(true);
+    assertEquals(little.length, big.length);
+    assertTrue(little.length > 0);
+    for (int i = 0; i + 3 < little.length; i += 4) {
+      for (int j = 0; j < 4; j++) {
+        assertEquals("Byte " + (i + j), little[i + j], big[i + 3 - j]);
+      }
+    }
+  }
+
+  private byte[] decodeWav(final boolean bigEndian)
+      throws IOException, UnsupportedAudioFileException {
+    final String filename = "test.wav";
+    final File file = File.createTempFile("testConvertWavToBigEndianFloat32", filename);
+    extractFile(filename, file);
+    try (final AudioInputStream wavStream = new CAAudioFileReader().getAudioInputStream(file);
+        final CACodecInputStream floatStream =
+            new CACodecInputStream(
+                new AudioFormat(AudioFormat.Encoding.PCM_FLOAT, 44100, 32, 2, 8, 44100, bigEndian),
+                (CAAudioInputStream) wavStream)) {
+      final ByteArrayOutputStream out = new ByteArrayOutputStream();
+      final byte[] buf = new byte[4096];
+      int justRead;
+      while ((justRead = floatStream.read(buf)) != -1) {
+        out.write(buf, 0, justRead);
+      }
+      return out.toByteArray();
+    } finally {
+      file.delete();
+    }
+  }
+
+  @Test
   public void testConvertMp3ToFloat32SamplesFiniteAndReasonable()
       throws IOException, UnsupportedAudioFileException {
     final String filename = "test.mp3";

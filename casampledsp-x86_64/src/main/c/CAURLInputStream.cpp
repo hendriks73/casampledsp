@@ -105,19 +105,22 @@ bail:
 JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAURLInputStream_open(JNIEnv *env, jobject stream, jbyteArray urlBytes, jint bufferSize) {
     int res = 0;
     CFURLRef inputURLRef = nullptr;
-    CAAudioFileIO *afio  = new CAAudioFileIO{};   // zero-initializes all fields
+    CAAudioFileIO *afio  = nullptr;
     UInt32 size;
-    jsize  urlLen = env->GetArrayLength(urlBytes);
-    jbyte *urlBuf = env->GetByteArrayElements(urlBytes, nullptr);
-    char  *urlStr = static_cast<char*>(malloc(urlLen + 1));
-    memcpy(urlStr, urlBuf, urlLen);
-    urlStr[urlLen] = '\0';
-    env->ReleaseByteArrayElements(urlBytes, urlBuf, JNI_ABORT);
+    jsize  urlLen = 0;
+    char  *urlStr = ca_utf8_from_byte_array(env, urlBytes, &urlLen);
+    if (urlStr == nullptr) return 0;
 
+    afio = new CAAudioFileIO{};   // zero-initializes all fields
     afio->srcBufferSize    = static_cast<UInt32>(bufferSize);
     afio->numPacketsPerRead = 1;
 
     inputURLRef = ca_url_ref_from_utf8(urlStr, urlLen);
+    if (inputURLRef == nullptr) {
+        res = -1;
+        throwUnsupportedAudioFileExceptionIfError(env, res, "Malformed URL. Failed to create CFURL.");
+        goto bail;
+    }
     res = AudioFileOpenURL(inputURLRef, kAudioFileReadPermission, 0, &afio->afid);
     if (res) {
         if (res == fnfErr || res == kAudioFileUnspecifiedError) {

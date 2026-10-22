@@ -420,6 +420,61 @@ public class TestCAAudioFileReader {
     }
   }
 
+  @Test
+  public void testGetAudioFileFormatFileWithEmojisByteLength()
+      throws IOException, UnsupportedAudioFileException {
+    // CAAudioFileFormat must decode the percent-encoded file URL before measuring the file.
+    final String filename = "test.mp3";
+    final File file = File.createTempFile("testByteLength 🎵", filename);
+    extractFile(filename, file);
+    try {
+      final AudioFileFormat fileFormat = new CAAudioFileReader().getAudioFileFormat(file);
+      assertEquals(file.length(), fileFormat.getByteLength());
+    } finally {
+      file.delete();
+    }
+  }
+
+  @Test
+  public void testGetAudioFileFormatRawEmojiURL()
+      throws IOException, UnsupportedAudioFileException {
+    // A URL whose string form contains raw (not percent-encoded) emoji crosses JNI as 4-byte
+    // UTF-8 sequences, which must not be passed to NewStringUTF.
+    final String filename = "test.mp3";
+    final File file = File.createTempFile("testRawEmojiURL🎵", filename);
+    extractFile(filename, file);
+    try {
+      final URL url = new URL("file:" + file.getAbsolutePath());
+      final AudioFileFormat fileFormat = new CAAudioFileReader().getAudioFileFormat(url);
+      assertEquals("mp3", fileFormat.getType().getExtension());
+      assertEquals(file.length(), fileFormat.getByteLength());
+    } finally {
+      file.delete();
+    }
+  }
+
+  @Test
+  public void testFileNotFoundMessageWithRawEmojiURL() throws IOException {
+    final File file = new File(System.getProperty("java.io.tmpdir"), "doesNotExist🎵.mp3");
+    final URL url = new URL("file:" + file.getAbsolutePath());
+    try {
+      new CAURLInputStream(url).close();
+      fail("Expected FileNotFoundException");
+    } catch (FileNotFoundException e) {
+      assertTrue(
+          "Message should contain the emoji: " + e.getMessage(), e.getMessage().contains("🎵"));
+    } catch (UnsupportedAudioFileException e) {
+      fail("Expected FileNotFoundException, got " + e);
+    }
+  }
+
+  @Test(expected = UnsupportedAudioFileException.class)
+  public void testGetAudioFileFormatEmptyStream()
+      throws IOException, UnsupportedAudioFileException {
+    new CAAudioFileReader()
+        .getAudioFileFormat(new BufferedInputStream(new ByteArrayInputStream(new byte[0])));
+  }
+
   private void extractFile(final String filename, final File file) throws IOException {
     try (final InputStream in = getClass().getResourceAsStream(filename);
         final OutputStream out = new FileOutputStream(file)) {

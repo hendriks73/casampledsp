@@ -72,13 +72,10 @@ JNIEXPORT jobject JNICALL Java_com_tagtraum_casampledsp_CAAudioFileReader_intGet
     UInt64  dataPacketCount      = 0;
     UInt64  frameLength          = 0;
     const Float64 bitsPerByte    = 8.;
-
-    jsize  urlLen = env->GetArrayLength(urlBytes);
-    jbyte *urlBuf = env->GetByteArrayElements(urlBytes, nullptr);
-    char  *urlStr = static_cast<char*>(malloc(urlLen + 1));
-    memcpy(urlStr, urlBuf, urlLen);
-    urlStr[urlLen] = '\0';
-    env->ReleaseByteArrayElements(urlBytes, urlBuf, JNI_ABORT);
+    jstring urlJString           = nullptr;
+    jsize   urlLen               = 0;
+    char   *urlStr               = ca_utf8_from_byte_array(env, urlBytes, &urlLen);
+    if (urlStr == nullptr) return nullptr;
 
     inputURLRef = ca_url_ref_from_utf8(urlStr, urlLen);
     if (inputURLRef == nullptr) {
@@ -142,23 +139,22 @@ JNIEXPORT jobject JNICALL Java_com_tagtraum_casampledsp_CAAudioFileReader_intGet
     fprintf(stderr, bigEndian ? "bigEndian : true\n" : "bigEndian : false\n");
 #endif
 
-    {
-        jstring urlJString = env->NewStringUTF(urlStr);
-        audioFormat = create_CoreAudioAudioFileFormat_object(
-            env, urlJString,
-            static_cast<jint>(inputFormat.mFormatID),
-            static_cast<jfloat>(inputFormat.mSampleRate),
-            static_cast<jint>(inputFormat.mBitsPerChannel),
-            static_cast<jint>(inputFormat.mChannelsPerFrame),
-            static_cast<jint>(inputFormat.mBytesPerFrame),
-            frameRate,
-            static_cast<jint>(frameLength),
-            bigEndian,
-            durationInMicroSeconds,
-            bitRate,
-            vbr);
-        env->DeleteLocalRef(urlJString);
-    }
+    urlJString = ca_new_string_from_utf8(env, urlStr, urlLen);
+    if (urlJString == nullptr) goto bail;
+    audioFormat = create_CoreAudioAudioFileFormat_object(
+        env, urlJString,
+        static_cast<jint>(inputFormat.mFormatID),
+        static_cast<jfloat>(inputFormat.mSampleRate),
+        static_cast<jint>(inputFormat.mBitsPerChannel),
+        static_cast<jint>(inputFormat.mChannelsPerFrame),
+        static_cast<jint>(inputFormat.mBytesPerFrame),
+        frameRate,
+        static_cast<jint>(frameLength),
+        bigEndian,
+        durationInMicroSeconds,
+        bitRate,
+        vbr);
+    env->DeleteLocalRef(urlJString);
 
 bail:
     free(urlStr);

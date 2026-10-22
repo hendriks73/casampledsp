@@ -85,8 +85,15 @@ void throwIllegalArgumentExceptionIfError(JNIEnv *env, int err, const char *mess
  */
 void throwFileNotFoundExceptionIfError(JNIEnv *env, int err, const char *message) {
     if (!err) return;
+    // message is usually a URL in UTF-8, which ThrowNew (Modified UTF-8) would garble
     jclass excCls = env->FindClass("java/io/FileNotFoundException");
-    env->ThrowNew(excCls, message);
+    if (excCls == nullptr) return;
+    jmethodID cid = env->GetMethodID(excCls, "<init>", "(Ljava/lang/String;)V");
+    if (cid == nullptr) return;
+    jstring msg = ca_new_string_from_utf8(env, message, static_cast<CFIndex>(strlen(message)));
+    if (msg == nullptr) return;
+    jobject exc = env->NewObject(excCls, cid, msg);
+    if (exc != nullptr) env->Throw(static_cast<jthrowable>(exc));
 }
 
 /**
@@ -98,4 +105,47 @@ CFURLRef ca_url_ref_from_utf8(const char *urlBytes, CFIndex len) {
     return CFURLCreateWithBytes(kCFAllocatorDefault,
                                 reinterpret_cast<const UInt8*>(urlBytes),
                                 len, kCFStringEncodingUTF8, nullptr);
+}
+
+/**
+ * Copies a Java byte[] holding UTF-8 into a new NUL-terminated C string.
+ * Returns nullptr with a Java exception pending on failure. Release with free().
+ */
+char *ca_utf8_from_byte_array(JNIEnv *env, jbyteArray bytes, jsize *len) {
+    *len = env->GetArrayLength(bytes);
+    char *str = static_cast<char*>(malloc(static_cast<size_t>(*len) + 1));
+    if (str == nullptr) {
+        jclass excCls = env->FindClass("java/lang/OutOfMemoryError");
+        if (excCls != nullptr) env->ThrowNew(excCls, "Failed to allocate URL buffer");
+        return nullptr;
+    }
+    env->GetByteArrayRegion(bytes, 0, *len, reinterpret_cast<jbyte*>(str));
+    if (env->ExceptionCheck()) {
+        free(str);
+        return nullptr;
+    }
+    str[*len] = '\0';
+    return str;
+}
+
+/**
+ * Creates a Java string from standard UTF-8. Unlike NewStringUTF, which expects
+ * Modified UTF-8, this handles 4-byte sequences such as emoji.
+ * Returns nullptr with a Java exception pending on failure.
+ */
+jstring ca_new_string_from_utf8(JNIEnv *env, const char *utf8, CFIndex len) {
+    CFStringRef cfString = CFStringCreateWithBytes(kCFAllocatorDefault,
+                                                   reinterpret_cast<const UInt8*>(utf8),
+                                                   len, kCFStringEncodingUTF8, false);
+    if (cfString == nullptr) {
+        throwIllegalArgumentExceptionIfError(env, -1, "Invalid UTF-8");
+        return nullptr;
+    }
+    const CFIndex length = CFStringGetLength(cfString);
+    UniChar *chars = new UniChar[length > 0 ? length : 1];
+    CFStringGetCharacters(cfString, CFRangeMake(0, length), chars);
+    jstring result = env->NewString(reinterpret_cast<const jchar*>(chars), static_cast<jsize>(length));
+    delete[] chars;
+    CFRelease(cfString);
+    return result;
 }

@@ -94,13 +94,14 @@ public class CAAudioFileReader extends AudioFileReader {
   }
 
   private AudioFileFormat getAudioFileFormat(final InputStream stream, final int fileTypeHint)
-      throws IOException {
+      throws UnsupportedAudioFileException, IOException {
     if (!stream.markSupported()) throw new IOException("InputStream must support mark()");
     final int readlimit = 1024 * 32;
     stream.mark(readlimit);
     try {
       final byte[] buf = new byte[readlimit];
       final int length = stream.read(buf);
+      if (length <= 0) throw new UnsupportedAudioFileException("Empty stream");
       return intGetAudioFormat(buf, length, fileTypeHint);
     } finally {
       stream.reset();
@@ -203,7 +204,7 @@ public class CAAudioFileReader extends AudioFileReader {
     final CANativePeerInputStream stream;
     if (isFile(url)) {
       fileFormat = getAudioFileFormat(url);
-      stream = new CAURLInputStream(url);
+      stream = new CAURLInputStream(url, bufferSize);
     } else {
       final URLConnection urlConnection = url.openConnection();
       urlConnection.setConnectTimeout(connectTimeout);

@@ -44,18 +44,25 @@ public abstract class CANativePeerInputStream extends InputStream {
    *
    * <p>Legacy: the old property {@code CA_DEFAULT_BUFFER_SIZE} expressed the size in <em>kilo
    * bytes</em>; it is still honoured as a fallback but {@code casampledsp.bufferSize} (bytes) takes
-   * precedence.
+   * precedence. Invalid or non-positive values are ignored.
    */
-  public static final int DEFAULT_BUFFER_SIZE;
+  public static int DEFAULT_BUFFER_SIZE = getDefaultBufferSize();
 
-  static {
-    final String newProp = System.getProperty("casampledsp.bufferSize");
-    if (newProp != null) {
-      DEFAULT_BUFFER_SIZE = Integer.parseInt(newProp.trim());
-    } else {
-      DEFAULT_BUFFER_SIZE =
-          1024 * Integer.parseInt(System.getProperty("CA_DEFAULT_BUFFER_SIZE", "1024"));
+  private static int getDefaultBufferSize() {
+    try {
+      final String newProp = System.getProperty("casampledsp.bufferSize");
+      if (newProp != null) {
+        final int v = Integer.parseInt(newProp.trim());
+        if (v > 0) return v;
+      }
+      final String legacyProp = System.getProperty("CA_DEFAULT_BUFFER_SIZE");
+      if (legacyProp != null) {
+        final int v = 1024 * Integer.parseInt(legacyProp.trim());
+        if (v > 0) return v;
+      }
+    } catch (NumberFormatException ignored) {
     }
+    return 1024 * 1024;
   }
 
   /** Pointer to the native peer struct. */

@@ -222,7 +222,8 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_open(JN
     // get java-managed byte buffer reference
     byteBuffer = env->GetObjectField(stream, nativeBufferFID);
     if (byteBuffer == nullptr) {
-        throwIOExceptionIfError(env, 1, "Failed to get native buffer for this codec");
+        res = 1;
+        throwIOExceptionIfError(env, res, "Failed to get native buffer for this codec");
         goto bail;
     }
 
@@ -264,14 +265,10 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_open(JN
     acio->srcFormat.mFormatID         = static_cast<UInt32>(env->CallIntMethod(targetEncoding, dataFormatMID));
 
     if (acio->srcFormat.mFormatID == kAudioFormatLinearPCM) {
-        if (isFloatTarget) {
-            acio->srcFormat.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
-        } else {
-            acio->srcFormat.mFormatFlags =
-                (env->CallBooleanMethod(targetFormat, bigEndianMID) == JNI_TRUE ? kAudioFormatFlagIsBigEndian : 0u)
-                | kAudioFormatFlagIsPacked
-                | kAudioFormatFlagIsSignedInteger;
-        }
+        acio->srcFormat.mFormatFlags =
+            (env->CallBooleanMethod(targetFormat, bigEndianMID) == JNI_TRUE ? kAudioFormatFlagIsBigEndian : 0u)
+            | kAudioFormatFlagIsPacked
+            | (isFloatTarget ? kAudioFormatFlagIsFloat : kAudioFormatFlagIsSignedInteger);
     }
 
     // convert AudioSystem.NOT_SPECIFIED (-1) to 0
@@ -281,9 +278,9 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CACodecInputStream_open(JN
     if (static_cast<SInt32>(acio->srcFormat.mBytesPerFrame)     < 0) acio->srcFormat.mBytesPerFrame     = 0;
     if (static_cast<SInt32>(acio->srcFormat.mBytesPerPacket)    < 0) acio->srcFormat.mBytesPerPacket    = 0;
 
-    if (acio->srcFormat.mBytesPerFrame  == 0) { throwIllegalArgumentExceptionIfError(env, 1, "frameSize must be positive");     goto bail; }
-    if (acio->srcFormat.mBytesPerPacket == 0) { throwIllegalArgumentExceptionIfError(env, 1, "bytesPerPacket must be positive"); goto bail; }
-    if (acio->srcFormat.mBitsPerChannel == 0) { throwIllegalArgumentExceptionIfError(env, 1, "sampleSizeInBits must be positive"); goto bail; }
+    if (acio->srcFormat.mBytesPerFrame  == 0) { res = 1; throwIllegalArgumentExceptionIfError(env, res, "frameSize must be positive"); goto bail; }
+    if (acio->srcFormat.mBytesPerPacket == 0) { res = 1; throwIllegalArgumentExceptionIfError(env, res, "bytesPerPacket must be positive"); goto bail; }
+    if (acio->srcFormat.mBitsPerChannel == 0) { res = 1; throwIllegalArgumentExceptionIfError(env, res, "sampleSizeInBits must be positive"); goto bail; }
 
     while (acio->sourceAudioIO->srcFormat.mFormatID == 0) {
         env->CallVoidMethod(sourceStream, fillNativeBufferMID);
