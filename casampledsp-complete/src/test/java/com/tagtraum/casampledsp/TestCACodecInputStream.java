@@ -152,7 +152,7 @@ public class TestCACodecInputStream {
       final float sampleRate =
           new CAAudioFileReader().getAudioFileFormat(file).getFormat().getSampleRate();
       // same rounding as CAURLInputStream.seek()
-      final int seekFrame = (int) ((long) (sampleRate * millis * 1000L) / 1000000L);
+      final int seekFrame = (int) ((long) ((double) sampleRate * millis * 1000L) / 1000000L);
       final int from = (seekFrame + compareFromFrame) * frameSize;
       assertArrayEquals(
           Arrays.copyOfRange(full, from, from + frames * frameSize),
