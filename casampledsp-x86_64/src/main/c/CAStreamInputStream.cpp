@@ -22,143 +22,127 @@
  */
 #include "com_tagtraum_casampledsp_CAStreamInputStream.h"
 #include "CAUtils.h"
-#include <pthread.h>
 
-static jfieldID nativeBufferFieldID = NULL;
-static jmethodID rewindMethodID = NULL;
-static jmethodID setLimitMethodID = NULL;
-static jmethodID getLimitMethodID = NULL;
-static jmethodID setPositionMethodID = NULL;
-static jmethodID getPositionMethodID = NULL;
+static jfieldID  nativeBufferFieldID  = nullptr;
+static jmethodID rewindMethodID       = nullptr;
+static jmethodID setLimitMethodID     = nullptr;
+static jmethodID getLimitMethodID     = nullptr;
+static jmethodID setPositionMethodID  = nullptr;
+static jmethodID getPositionMethodID  = nullptr;
 
 /**
  * Init static method and field ids for Java methods/fields, if we don't have them already.
- *
- * @param env JNIEnv
  */
 static void init_ids(JNIEnv *env, jobject stream) {
-    // get method and field ids, if we don't have them already 
-    if (nativeBufferFieldID == NULL || rewindMethodID == NULL || setLimitMethodID == NULL
-            || getLimitMethodID == NULL || getPositionMethodID==NULL || setPositionMethodID==NULL) {
-
+    if (nativeBufferFieldID == nullptr || rewindMethodID == nullptr || setLimitMethodID == nullptr
+            || getLimitMethodID == nullptr || getPositionMethodID == nullptr || setPositionMethodID == nullptr) {
         nativeBufferFieldID = env->GetFieldID(env->GetObjectClass(stream), "nativeBuffer", "Ljava/nio/ByteBuffer;");
-        jclass bufferClass = env->FindClass("java/nio/Buffer");
-        rewindMethodID = env->GetMethodID(bufferClass, "rewind", "()Ljava/nio/Buffer;");
-        setLimitMethodID = env->GetMethodID(bufferClass, "limit", "(I)Ljava/nio/Buffer;");
-        getLimitMethodID = env->GetMethodID(bufferClass, "limit", "()I");
-        getPositionMethodID = env->GetMethodID(bufferClass, "position", "()I");
-        setPositionMethodID = env->GetMethodID(bufferClass, "position", "(I)Ljava/nio/Buffer;");;
+        jclass bufferClass  = env->FindClass("java/nio/Buffer");
+        rewindMethodID      = env->GetMethodID(bufferClass, "rewind",    "()Ljava/nio/Buffer;");
+        setLimitMethodID    = env->GetMethodID(bufferClass, "limit",     "(I)Ljava/nio/Buffer;");
+        getLimitMethodID    = env->GetMethodID(bufferClass, "limit",     "()I");
+        getPositionMethodID = env->GetMethodID(bufferClass, "position",  "()I");
+        setPositionMethodID = env->GetMethodID(bufferClass, "position",  "(I)Ljava/nio/Buffer;");
     }
 }
 
 
 /**
- * Packet callback for AudioFileStreamOpen used in <code>open</code>.
+ * Packet callback for AudioFileStreamOpen used in open().
  */
-static void CAStreamInputStream_PacketsProc (
-                                           void                          *inClientData,
-                                           UInt32                        inNumberBytes,
-                                           UInt32                        inNumberPackets,
-                                           const void                    *inInputData,
-                                           AudioStreamPacketDescription  *inPacketDescriptions
-                                           ){
+static void CAStreamInputStream_PacketsProc(
+        void                         *inClientData,
+        UInt32                        inNumberBytes,
+        UInt32                        inNumberPackets,
+        const void                   *inInputData,
+        AudioStreamPacketDescription *inPacketDescriptions) {
 #ifdef DEBUG
     fprintf(stderr, "CAStreamInputStream_PacketsProc\n");
 #endif
 
-    CAAudioStreamIO *asio = (CAAudioStreamIO*)inClientData;
-    jobject byteBuffer = NULL;
-    jlong capacity = 0;
-    jint limit = 0;
-    int totalPackets = 0;
-    int oldPackets = 0;
-    AudioStreamPacketDescription *newPktDescs = NULL;
-    int i=0;
+    CAAudioStreamIO *asio = static_cast<CAAudioStreamIO*>(inClientData);
+    jobject byteBuffer    = nullptr;
+    jlong   capacity      = 0;
+    jint    limit         = 0;
+    int     totalPackets  = 0;
+    int     oldPackets    = 0;
+    AudioStreamPacketDescription *newPktDescs = nullptr;
 
-    // get java-managed byte buffer reference
-    byteBuffer = asio->env->GetObjectField(asio->javaInstance, nativeBufferFieldID);    
-    if (byteBuffer == NULL) {
+    byteBuffer = asio->env->GetObjectField(asio->javaInstance, nativeBufferFieldID);
+    if (byteBuffer == nullptr) {
         throwIOExceptionIfError(asio->env, 1, "Failed to obtain native buffer");
         goto bail;
     }
     limit = asio->env->CallIntMethod(byteBuffer, getLimitMethodID);
 
-    // get pointer to our java managed bytebuffer
-    asio->srcBuffer = (char *)asio->env->GetDirectBufferAddress(byteBuffer);
-    capacity = asio->env->GetDirectBufferCapacity(byteBuffer);
-    if (asio->srcBuffer == NULL) {
+    asio->srcBuffer = static_cast<char*>(asio->env->GetDirectBufferAddress(byteBuffer));
+    capacity        = asio->env->GetDirectBufferCapacity(byteBuffer);
+    if (asio->srcBuffer == nullptr) {
         throwIOExceptionIfError(asio->env, 1, "Failed to obtain direct buffer address");
         goto bail;
     }
-    if (capacity-limit < inNumberBytes) {
-        throwIOExceptionIfError(asio->env, 1, "Native buffer to small for decoded audio");
+    if (capacity - limit < static_cast<jlong>(inNumberBytes)) {
+        throwIOExceptionIfError(asio->env, 1, "Native buffer too small for decoded audio");
         goto bail;
     }
-    // copy data to our byte buffer
-    memcpy(asio->srcBuffer+limit, inInputData, inNumberBytes);
-    
-    // advance input file packet position
+
+    memcpy(asio->srcBuffer + limit, inInputData, inNumberBytes);
+
     if (limit == 0) {
         asio->lastPos = asio->pos;
     }
-    oldPackets = asio->pos - asio->lastPos;
-	asio->pos += inNumberPackets;
-    asio->srcBufferSize = inNumberBytes+limit;
-    totalPackets = asio->pos - asio->lastPos;
+    oldPackets           = static_cast<int>(asio->pos - asio->lastPos);
+    asio->pos           += inNumberPackets;
+    asio->srcBufferSize  = inNumberBytes + limit;
+    totalPackets         = static_cast<int>(asio->pos - asio->lastPos);
 
-    // we already wrote to the buffer, now we still need to
-    // set new bytebuffer limit and position to 0.
     asio->env->CallObjectMethod(byteBuffer, setPositionMethodID, 0);
-    asio->env->CallObjectMethod(byteBuffer, setLimitMethodID, inNumberBytes+limit);
-    
+    asio->env->CallObjectMethod(byteBuffer, setLimitMethodID, static_cast<jint>(inNumberBytes + limit));
+
     if (inPacketDescriptions) {
-        newPktDescs = new AudioStreamPacketDescription[totalPackets];
-        if (asio->pktDescs != NULL) {
-            // copy to new array
-            memcpy(newPktDescs, asio->pktDescs, sizeof(AudioStreamPacketDescription)*oldPackets);
-            // delete the old one
+        newPktDescs = new AudioStreamPacketDescription[totalPackets]{};
+        if (asio->pktDescs != nullptr) {
+            memcpy(newPktDescs, asio->pktDescs, sizeof(AudioStreamPacketDescription) * oldPackets);
             delete[] asio->pktDescs;
         }
-
-        // copy new packets
-        memcpy(&newPktDescs[oldPackets], inPacketDescriptions, sizeof(AudioStreamPacketDescription)*inNumberPackets);
-        // correct offsets
-        for (i=1; i<totalPackets; i++) {
-            newPktDescs[i].mStartOffset = newPktDescs[i-1].mDataByteSize+newPktDescs[i-1].mStartOffset;
+        memcpy(&newPktDescs[oldPackets], inPacketDescriptions, sizeof(AudioStreamPacketDescription) * inNumberPackets);
+        for (int i = 1; i < totalPackets; i++) {
+            newPktDescs[i].mStartOffset = newPktDescs[i-1].mDataByteSize + newPktDescs[i-1].mStartOffset;
         }
         asio->pktDescs = newPktDescs;
     }
-    
+
 bail:
     return;
 }
 
 
 /**
- * Property callback for AudioFileStreamOpen used in <code>open</code>.
+ * Property callback for AudioFileStreamOpen used in open().
  */
-static void CAStreamInputStream_PropertyListenerProc(void                        *inClientData,
-                                                    AudioFileStreamID           stream,
-                                                    AudioFileStreamPropertyID   inPropertyID,
-                                                    UInt32                      *ioFlags) {
-    int res = 0;
-    UInt32 size;
+static void CAStreamInputStream_PropertyListenerProc(
+        void                      *inClientData,
+        AudioFileStreamID          stream,
+        AudioFileStreamPropertyID  inPropertyID,
+        UInt32                    *ioFlags) {
+    int    res  = 0;
+    UInt32 size = 0;
 
 #ifdef DEBUG
     fprintf(stderr, "CAStreamInputStream_PropertyListenerProc\n");
     fprintf(stderr, "AudioFileStreamPropertyID %i\n", inPropertyID);
 #endif
 
-    CAAudioStreamIO *asio = (CAAudioStreamIO*)inClientData;
+    CAAudioStreamIO *asio = static_cast<CAAudioStreamIO*>(inClientData);
 
     if (inPropertyID == kAudioFileStreamProperty_MagicCookieData) {
-        res = AudioFileStreamGetPropertyInfo(stream, kAudioFileStreamProperty_MagicCookieData, &asio->cookieSize, NULL);
+        res = AudioFileStreamGetPropertyInfo(stream, kAudioFileStreamProperty_MagicCookieData, &asio->cookieSize, nullptr);
         if (res && res != kAudioFileUnsupportedPropertyError) {
             throwUnsupportedAudioFileExceptionIfError(asio->env, res, "Failed to obtain cookie info from audio stream");
             goto bail;
         }
         res = 0;
-        if (!res && asio->cookieSize) {
+        if (asio->cookieSize) {
             asio->cookie = new char[asio->cookieSize];
             res = AudioFileStreamGetProperty(stream, kAudioFileStreamProperty_MagicCookieData, &asio->cookieSize, asio->cookie);
             if (res) {
@@ -170,101 +154,67 @@ static void CAStreamInputStream_PropertyListenerProc(void                       
 
     if (inPropertyID == kAudioFileStreamProperty_DataFormat) {
         size = sizeof(asio->srcFormat);
-        res = AudioFileStreamGetProperty(stream, kAudioFileStreamProperty_DataFormat, &size, &asio->srcFormat);
+        res  = AudioFileStreamGetProperty(stream, kAudioFileStreamProperty_DataFormat, &size, &asio->srcFormat);
         if (res) {
             throwUnsupportedAudioFileExceptionIfError(asio->env, res, "Failed to read audio format from stream");
             goto bail;
         }
-        /*
-        // find out how many packets fit into the buffer
-        if (asio->srcFormat.mBytesPerPacket == 0) {
-            // format is VBR, so we need to get max size per packet
-            size = sizeof(asio->srcSizePerPacket);
-            res = AudioFileStreamGetProperty(asio->asid, kAudioFileStreamProperty_MaximumPacketSize, &size, &asio->srcSizePerPacket);
-            if (res) {
-                throwIOExceptionIfError(asio->env, res, "AudioStreamGetProperty kAudioFileStreamProperty_MaximumPacketSize failed");
-                goto bail;
-            }
-            asio->numPacketsPerRead = asio->srcBufferSize / asio->srcSizePerPacket;
-            asio->pktDescs = new AudioStreamPacketDescription [asio->numPacketsPerRead];
-        }
-        else {
-            asio->srcSizePerPacket = asio->srcFormat.mBytesPerPacket;
-            asio->numPacketsPerRead = asio->srcBufferSize / asio->srcSizePerPacket;
-            asio->pktDescs = NULL;
-        }
-        */
     }
-    
+
 bail:
     return;
 }
 
 /**
  * Called by the Java code to fill the native buffer.
- *
- * @param env JNI env
- * @param stream stream instance
- * @param asioPtr pointer to CAAudioStreamIO
- * @param buf byte array with the first X bytes of data
- * @param length length of the byte buffer
  */
 JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_fillNativeBuffer(JNIEnv *env, jobject stream, jlong asioPtr, jbyteArray buf, jint length) {
-
 #ifdef DEBUG
     fprintf(stderr, "fillNativeBuffer: %lld\n", asioPtr);
 #endif
-    
-    int res = 0;
-    CAAudioStreamIO *asio = (CAAudioStreamIO*)asioPtr;
-    char inBuf[length];
 
-    // update jav env
-    asio->env = env;
+    int res = 0;
+    CAAudioStreamIO *asio = reinterpret_cast<CAAudioStreamIO*>(asioPtr);
+    jbyte *inBuf = nullptr;
+
+    asio->env          = env;
     asio->javaInstance = stream;
-    
-    // convert byte buf to native array
-    env->GetByteArrayRegion(buf, 0, length, (jbyte*)inBuf);
-    
-    // pump bytes into the stream reader
-    res = AudioFileStreamParseBytes(asio->asid, length, &inBuf, kAudioFileStreamPropertyFlag_CacheProperty);
+
+    inBuf = env->GetByteArrayElements(buf, nullptr);
+    if (inBuf == nullptr) {
+        throwIOExceptionIfError(env, 1, "Failed to obtain byte array for stream parsing");
+        goto bail;
+    }
+
+    res = AudioFileStreamParseBytes(asio->asid, static_cast<UInt32>(length), inBuf, kAudioFileStreamPropertyFlag_CacheProperty);
     if (res) {
         throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to parse bytes from audio stream");
         goto bail;
     }
-    
+
 bail:
+    if (inBuf != nullptr) {
+        env->ReleaseByteArrayElements(buf, inBuf, JNI_ABORT);
+    }
     return;
 }
 
 /**
- * Opens the audio stream - at this point only the callbacks are set up via AudioFileStreamOpen.
+ * Opens the audio stream by registering Core Audio callbacks via AudioFileStreamOpen.
  *
- * @param env JNI env
- * @param stream Java stream instance
- * @param hint file type hint
- * @return pointer to CAAudioStreamIO struct
+ * @return pointer to CAAudioStreamIO struct, or 0 on error
  */
-JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_open
-        (JNIEnv *env, jobject stream, jint hint, jint bufferSize) {
+JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_open(JNIEnv *env, jobject stream, jint hint, jint bufferSize) {
     int res = 0;
-    CAAudioStreamIO *asio = new CAAudioStreamIO;
-    
-    init_ids(env, stream);
-    
-	asio->srcBufferSize = bufferSize;
-	asio->pos = 0;
-	asio->lastPos = 0;
-	asio->asid = NULL;
-    asio->env = env;
-    asio->javaInstance = stream;
-    asio->srcFormat.mFormatID = 0;
-    asio->pktDescs = NULL;
-    asio->cookie = NULL;
-    asio->cookieSize = 0;
-    asio->frameOffset = 0;
+    CAAudioStreamIO *asio = new CAAudioStreamIO{};  // zero-initializes all fields
 
-    res = AudioFileStreamOpen(asio, CAStreamInputStream_PropertyListenerProc, CAStreamInputStream_PacketsProc, hint, &asio->asid);
+    init_ids(env, stream);
+
+    asio->srcBufferSize = static_cast<UInt32>(bufferSize);
+    asio->env           = env;
+    asio->javaInstance  = stream;
+
+    res = AudioFileStreamOpen(asio, CAStreamInputStream_PropertyListenerProc, CAStreamInputStream_PacketsProc, static_cast<AudioFileTypeID>(hint), &asio->asid);
     if (res) {
         throwUnsupportedAudioFileExceptionIfError(env, res, "Failed to open audio stream");
         goto bail;
@@ -272,38 +222,23 @@ JNIEXPORT jlong JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_open
 
 bail:
     if (res) {
-        if (asio->cookie != NULL) {
-            delete asio->cookie;
-        }
-        if (asio->pktDescs != NULL) {
-            delete[] asio->pktDescs;
-        }
-        if (asio->asid != NULL) {
-            AudioFileStreamClose(asio->asid);
-        }
+        if (asio->cookie   != nullptr) delete[] asio->cookie;
+        if (asio->pktDescs != nullptr) delete[] asio->pktDescs;
+        if (asio->asid     != nullptr) AudioFileStreamClose(asio->asid);
         delete asio;
+        return 0;
     }
-    
-    return (jlong)asio;
+    return reinterpret_cast<jlong>(asio);
 }
 
 /**
- * Closes the stream and all associated resources.
- *
- * @param env JNI env
- * @param stream calling stream instance
- * @param asioPtr pointer to CAAudioStreamIO
+ * Closes the stream and frees all associated resources.
  */
-JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_close
-        (JNIEnv *env, jobject stream, jlong asioPtr) {
+JNIEXPORT void JNICALL Java_com_tagtraum_casampledsp_CAStreamInputStream_close(JNIEnv *env, jobject stream, jlong asioPtr) {
     if (asioPtr == 0) return;
-    CAAudioStreamIO *asio = (CAAudioStreamIO*)asioPtr;
-    if (asio->cookie != NULL) {
-        delete asio->cookie;
-    }
-    if (asio->pktDescs != NULL) {
-        delete[] asio->pktDescs;
-    }
+    CAAudioStreamIO *asio = reinterpret_cast<CAAudioStreamIO*>(asioPtr);
+    if (asio->cookie   != nullptr) delete[] asio->cookie;
+    if (asio->pktDescs != nullptr) delete[] asio->pktDescs;
     int res = AudioFileStreamClose(asio->asid);
     if (res) {
         throwIOExceptionIfError(env, res, "Failed to close audio stream");

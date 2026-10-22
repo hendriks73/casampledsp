@@ -20,109 +20,144 @@
  */
 package com.tagtraum.casampledsp;
 
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 /**
- * Used by {@link CAFormatConversionProvider} to convert a {@link CAAudioInputStream} (not just
- * any {@link javax.sound.sampled.AudioInputStream}) to another {@link AudioFormat}.
- * <p>
- * Note that we take a shortcut:<br>
- * Instead of only relying on the source Java stream, we take advantage of the
- * {@link CANativePeerInputStream}.
- * This of course only works, if the stream to convert is also an {@link CAAudioInputStream}.
- * This needs to be checked in {@link CAFormatConversionProvider} using the {@link CAAudioFormat#PROVIDER}
- * property of the source format.
+ * Used by {@link CAFormatConversionProvider} to convert a {@link CAAudioInputStream} (not just any
+ * {@link javax.sound.sampled.AudioInputStream}) to another {@link AudioFormat}.
  *
- * @see CAFormatConversionProvider#isConversionSupported(javax.sound.sampled.AudioFormat, javax.sound.sampled.AudioFormat)
- * @see CAFormatConversionProvider#isConversionSupported(javax.sound.sampled.AudioFormat.Encoding, javax.sound.sampled.AudioFormat)
+ * <p>Note that we take a shortcut:<br>
+ * Instead of only relying on the source Java stream, we take advantage of the {@link
+ * CANativePeerInputStream}. This of course only works, if the stream to convert is also an {@link
+ * CAAudioInputStream}. This needs to be checked in {@link CAFormatConversionProvider} using the
+ * {@link CAAudioFormat#PROVIDER} property of the source format.
  *
+ * @see CAFormatConversionProvider#isConversionSupported(javax.sound.sampled.AudioFormat,
+ *     javax.sound.sampled.AudioFormat)
+ * @see CAFormatConversionProvider#isConversionSupported(javax.sound.sampled.AudioFormat.Encoding,
+ *     javax.sound.sampled.AudioFormat)
  * @author <a href="mailto:hs@tagtraum.com">Hendrik Schreiber</a>
  */
 public class CACodecInputStream extends CANativePeerInputStream {
 
-    private final CANativePeerInputStream wrappedStream;
+  private static final Set<Integer> PCM_FLOAT_VALID_SAMPLE_SIZES =
+      new HashSet<>(Arrays.asList(32, 64));
 
-    /**
-     * Opens a codec stream with the default buffer size given in {@link #DEFAULT_BUFFER_SIZE}.
-     *
-     * @param targetFormat target format
-     * @param stream stream
-     */
-    public CACodecInputStream(final AudioFormat targetFormat, final CAAudioInputStream stream) throws IOException, UnsupportedAudioFileException {
-        this(targetFormat, stream, DEFAULT_BUFFER_SIZE);
+  private final CANativePeerInputStream wrappedStream;
+
+  /**
+   * Opens a codec stream with the default buffer size given in {@link #DEFAULT_BUFFER_SIZE}.
+   *
+   * @param targetFormat target format
+   * @param stream stream
+   */
+  public CACodecInputStream(final AudioFormat targetFormat, final CAAudioInputStream stream)
+      throws IOException, UnsupportedAudioFileException {
+    this(targetFormat, stream, DEFAULT_BUFFER_SIZE);
+  }
+
+  /**
+   * Opens a codec stream with the given buffer size.
+   *
+   * @param targetFormat target format
+   * @param stream stream
+   * @param bufferSize buffer size to use when reading
+   */
+  public CACodecInputStream(
+      final AudioFormat targetFormat, final CAAudioInputStream stream, final int bufferSize)
+      throws IOException, UnsupportedAudioFileException {
+    // make sure we have a supported encoding
+    AudioFormat audioFormat = targetFormat;
+    if (!(targetFormat.getEncoding() instanceof CAAudioFormat.CAEncoding)) {
+      // make sure we hand a CAEncoding to the native code
+      final CAAudioFormat.CAEncoding caEncoding =
+          CAAudioFormat.CAEncoding.getInstance(targetFormat.getEncoding().toString());
+      if (caEncoding == null) {
+        throw new UnsupportedEncodingException(
+            "This codec does not support the encoding \""
+                + targetFormat.getEncoding()
+                + "\". Supported codecs are: "
+                + CAAudioFormat.CAEncoding.getSupportedEncodings());
+      }
+      audioFormat =
+          new AudioFormat(
+              caEncoding,
+              targetFormat.getSampleRate(),
+              targetFormat.getSampleSizeInBits(),
+              targetFormat.getChannels(),
+              targetFormat.getFrameSize(),
+              targetFormat.getFrameRate(),
+              targetFormat.isBigEndian());
+    }
+    // PCM_FLOAT is only valid at 32 or 64 bits per sample
+    if (AudioFormat.Encoding.PCM_FLOAT.toString().equals(audioFormat.getEncoding().toString())) {
+      if (!PCM_FLOAT_VALID_SAMPLE_SIZES.contains(audioFormat.getSampleSizeInBits())) {
+        throw new IllegalArgumentException(
+            "PCM_FLOAT requires 32 or 64 bits per sample, got: "
+                + audioFormat.getSampleSizeInBits());
+      }
     }
 
-    /**
-     * Opens a codec stream with the given buffer size.
-     *
-     * @param targetFormat target format
-     * @param stream stream
-     * @param bufferSize buffer size to use when reading
-     */
-    public CACodecInputStream(final AudioFormat targetFormat, final CAAudioInputStream stream, final int bufferSize) throws IOException, UnsupportedAudioFileException {
-        // make sure we have a supported encoding
-        AudioFormat audioFormat = targetFormat;
-        if (!(targetFormat.getEncoding() instanceof CAAudioFormat.CAEncoding)) {
-            // make sure we hand a CAEncoding to the native code
-            final CAAudioFormat.CAEncoding caEncoding = CAAudioFormat.CAEncoding.getInstance(targetFormat.getEncoding().toString());
-            if (caEncoding == null) {
-                throw new UnsupportedEncodingException("This codec does not support the encoding \"" + targetFormat.getEncoding()
-                        + "\". Supported codecs are: " + CAAudioFormat.CAEncoding.getSupportedEncodings());
-            }
-            audioFormat = new AudioFormat(caEncoding,
-                    targetFormat.getSampleRate(), targetFormat.getSampleSizeInBits(), targetFormat.getChannels(),
-                    targetFormat.getFrameSize(), targetFormat.getFrameRate(), targetFormat.isBigEndian());
-        }
+    this.nativeBuffer = ByteBuffer.allocateDirect(bufferSize);
+    ((Buffer) this.nativeBuffer).limit(0);
+    this.pointer =
+        open(
+            audioFormat,
+            stream.getNativePeerInputStream(),
+            stream.getNativePeerInputStreamPointer());
+    this.wrappedStream = stream.getNativePeerInputStream();
+  }
 
-        this.nativeBuffer = ByteBuffer.allocateDirect(bufferSize);
-        ((Buffer)this.nativeBuffer).limit(0);
-        this.pointer = open(audioFormat, stream.getNativePeerInputStream(), stream.getNativePeerInputStreamPointer());
-        this.wrappedStream = stream.getNativePeerInputStream();
+  @Override
+  protected void fillNativeBuffer() throws IOException {
+    if (isOpen()) {
+      fillNativeBuffer(pointer);
     }
+  }
 
-    @Override
-    protected void fillNativeBuffer() throws IOException {
-        if (isOpen()) {
-            fillNativeBuffer(pointer);
-        }
+  @Override
+  public boolean isSeekable() {
+    return wrappedStream.isSeekable();
+  }
+
+  @Override
+  public void seek(final long time, final TimeUnit timeUnit)
+      throws UnsupportedOperationException, IOException {
+    this.wrappedStream.seek(time, timeUnit);
+    ((Buffer) this.nativeBuffer).limit(0);
+    if (isOpen()) {
+      reset(pointer);
+    } else {
+      throw new IOException("Stream is already closed");
     }
+  }
 
-    @Override
-    public boolean isSeekable() {
-        return wrappedStream.isSeekable();
+  @Override
+  public void close() throws IOException {
+    try {
+      if (wrappedStream != null) wrappedStream.close();
+    } finally {
+      super.close();
     }
+  }
 
-    @Override
-    public void seek(final long time, final TimeUnit timeUnit) throws UnsupportedOperationException, IOException {
-        this.wrappedStream.seek(time, timeUnit);
-        ((Buffer)this.nativeBuffer).limit(0);
-        if (isOpen()) {
-            reset(pointer);
-        } else {
-            throw new IOException("Stream is already closed");
-        }
-    }
+  private native void reset(final long pointer) throws IOException;
 
-    @Override
-    public void close() throws IOException {
-        try {
-            if (wrappedStream != null) wrappedStream.close();
-        } finally {
-            super.close();
-        }
-    }
+  private native void fillNativeBuffer(final long pointer) throws IOException;
 
-    private native void reset(final long pointer) throws IOException;
-    private native void fillNativeBuffer(final long pointer) throws IOException;
-    private native long open(final AudioFormat target, final CANativePeerInputStream stream, final long pointer) throws IOException;
-    @Override
-    protected native void close(final long pointer) throws IOException;
+  private native long open(
+      final AudioFormat target, final CANativePeerInputStream stream, final long pointer)
+      throws IOException;
 
-
+  @Override
+  protected native void close(final long pointer) throws IOException;
 }

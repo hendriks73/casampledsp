@@ -20,7 +20,7 @@ Introduction
 * Getting Started
 
     The easiest way to use <CASampledSP> (other than simply using the
-    {{{https://repo1.maven.org/maven2/com/tagtraum/casampledsp-complete/${projectversion}/casampledsp-complete-${projectversion}.jar}jar}})
+    {{{https://central.sonatype.com/artifact/com.tagtraum/casampledsp-complete/${projectversion}}jar}})
     is to start a {{{https://maven.apache.org/}Maven}} project and introduce a <CASampledSP> dependency.
 
     To do so, add something like this to the dependencies section of your pom:
@@ -37,7 +37,7 @@ Introduction
 
 * Requirements
 
-    <CASampledSP> requires OS X 10.7 or later and an Intel or ARM processor. Only 64 bit are supported.
+    <CASampledSP> requires macOS 11.0 (Big Sur) or later and an Intel or Apple Silicon processor. Only 64-bit is supported.
 
 * Alternatives
 

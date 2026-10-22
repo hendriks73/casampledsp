@@ -21,87 +21,131 @@
  * @author <a href="mailto:hs@tagtraum.com">Hendrik Schreiber</a>
  */
 #include "CAUtils.h"
+#include <string>
 
 
 /**
  * Converts an error code to a four letter code.
  */
 static void fourLetterCode(int err, char *cbuf) {
-    cbuf[0] = ((char*)&err)[3];
-    cbuf[1] = ((char*)&err)[2];
-    cbuf[2] = ((char*)&err)[1];
-    cbuf[3] = ((char*)&err)[0];
+    const char *p = reinterpret_cast<const char*>(&err);
+    cbuf[0] = p[3];
+    cbuf[1] = p[2];
+    cbuf[2] = p[1];
+    cbuf[3] = p[0];
+}
+
+static std::string formatErrorMessage(const char *message, int err) {
+    char cbuf[4];
+    fourLetterCode(err, cbuf);
+    return std::string(message) + " (" + std::string(cbuf, 4) + ")";
 }
 
 /**
- * Throws an UnsupportedAudioFileException exception
+ * Throws an UnsupportedAudioFileException.
  */
-void throwUnsupportedAudioFileExceptionIfError(JNIEnv *env, int err, const char * message) {
-    if (err) {
+void throwUnsupportedAudioFileExceptionIfError(JNIEnv *env, int err, const char *message) {
+    if (!err) return;
 #ifdef DEBUG
-        fprintf (stderr, "UnsupportedAudioFileException: '%s' %d (%4.4s)\n", message, (int)err, (char*)&err);
+    fprintf(stderr, "UnsupportedAudioFileException: '%s' %d\n", message, err);
 #endif
-        char cbuf[4];
-        fourLetterCode(err, cbuf);
-        char formattedMessage [strlen(message)+8];
-        snprintf(formattedMessage, strlen(message)+8, "%s (%4.4s)", message, cbuf);
-        jclass excCls = env->FindClass("javax/sound/sampled/UnsupportedAudioFileException");
-        env->ThrowNew(excCls, formattedMessage);
-    }
+    const std::string formatted = formatErrorMessage(message, err);
+    jclass excCls = env->FindClass("javax/sound/sampled/UnsupportedAudioFileException");
+    env->ThrowNew(excCls, formatted.c_str());
 }
 
 /**
  * Throws an IOException.
  */
 void throwIOExceptionIfError(JNIEnv *env, int err, const char *message) {
-    if (err) {
+    if (!err) return;
 #ifdef DEBUG
-		fprintf (stderr, "IOException: '%s' %d (%4.4s)\n", message, (int)err, (char*)&err);
+    fprintf(stderr, "IOException: '%s' %d\n", message, err);
 #endif
-        char cbuf[4];
-        fourLetterCode(err, cbuf);
-        char formattedMessage [strlen(message)+8];
-        snprintf(formattedMessage, strlen(message)+8, "%s (%4.4s)", message, cbuf);
-        jclass excCls = env->FindClass("java/io/IOException");
-        env->ThrowNew(excCls, formattedMessage);
-    }
+    const std::string formatted = formatErrorMessage(message, err);
+    jclass excCls = env->FindClass("java/io/IOException");
+    env->ThrowNew(excCls, formatted.c_str());
 }
 
 /**
  * Throws an IllegalArgumentException.
  */
 void throwIllegalArgumentExceptionIfError(JNIEnv *env, int err, const char *message) {
-    if (err) {
+    if (!err) return;
 #ifdef DEBUG
-		fprintf (stderr, "IllegalArgumentException: '%s' %d (%4.4s)\n", message, (int)err, (char*)&err);
+    fprintf(stderr, "IllegalArgumentException: '%s' %d\n", message, err);
 #endif
-        char cbuf[4];
-        fourLetterCode(err, cbuf);
-        char formattedMessage [strlen(message)+8];
-        snprintf(formattedMessage, strlen(message)+8, "%s (%4.4s)", message, cbuf);
-        jclass excCls = env->FindClass("java/lang/IllegalArgumentException");
-        env->ThrowNew(excCls, formattedMessage);
-        
-    }
-}
-/**
- * Throws an IllegalArgumentException.
- */
-void throwFileNotFoundExceptionIfError(JNIEnv *env, int err, const char *message) {
-    if (err) {
-		//fprintf (stderr, "FileNotFoundException: '%s' %d (%4.4s)\n", message, (int)err, (char*)&err);
-        jclass excCls = env->FindClass("java/io/FileNotFoundException");
-        env->ThrowNew(excCls, message);
-    }
+    const std::string formatted = formatErrorMessage(message, err);
+    jclass excCls = env->FindClass("java/lang/IllegalArgumentException");
+    env->ThrowNew(excCls, formatted.c_str());
 }
 
 /**
- * Creates a CFURLRef from the given path.
+ * Throws a FileNotFoundException.
  */
-void ca_create_url_ref(JNIEnv *env, jstring path, CFURLRef &urlRef) {
-    const jchar *chars = env->GetStringChars(path, NULL);
-    CFStringRef cfPath = CFStringCreateWithCharacters (kCFAllocatorDefault, chars, env->GetStringLength(path));
-    env->ReleaseStringChars(path, chars);
-	urlRef = CFURLCreateWithString(kCFAllocatorDefault, cfPath, NULL);
-	CFRelease(cfPath);
+void throwFileNotFoundExceptionIfError(JNIEnv *env, int err, const char *message) {
+    if (!err) return;
+    // message is usually a URL in UTF-8, which ThrowNew (Modified UTF-8) would garble
+    jclass excCls = env->FindClass("java/io/FileNotFoundException");
+    if (excCls == nullptr) return;
+    jmethodID cid = env->GetMethodID(excCls, "<init>", "(Ljava/lang/String;)V");
+    if (cid == nullptr) return;
+    jstring msg = ca_new_string_from_utf8(env, message, static_cast<CFIndex>(strlen(message)));
+    if (msg == nullptr) return;
+    jobject exc = env->NewObject(excCls, cid, msg);
+    if (exc != nullptr) env->Throw(static_cast<jthrowable>(exc));
+}
+
+/**
+ * Creates a CFURLRef from a UTF-8 byte buffer supplied by the Java caller.
+ * The Java side calls url.toString().getBytes(StandardCharsets.UTF_8) before
+ * crossing the JNI boundary, so no JNI call-back into Java is needed here.
+ */
+CFURLRef ca_url_ref_from_utf8(const char *urlBytes, CFIndex len) {
+    return CFURLCreateWithBytes(kCFAllocatorDefault,
+                                reinterpret_cast<const UInt8*>(urlBytes),
+                                len, kCFStringEncodingUTF8, nullptr);
+}
+
+/**
+ * Copies a Java byte[] holding UTF-8 into a new NUL-terminated C string.
+ * Returns nullptr with a Java exception pending on failure. Release with free().
+ */
+char *ca_utf8_from_byte_array(JNIEnv *env, jbyteArray bytes, jsize *len) {
+    *len = env->GetArrayLength(bytes);
+    char *str = static_cast<char*>(malloc(static_cast<size_t>(*len) + 1));
+    if (str == nullptr) {
+        jclass excCls = env->FindClass("java/lang/OutOfMemoryError");
+        if (excCls != nullptr) env->ThrowNew(excCls, "Failed to allocate URL buffer");
+        return nullptr;
+    }
+    env->GetByteArrayRegion(bytes, 0, *len, reinterpret_cast<jbyte*>(str));
+    if (env->ExceptionCheck()) {
+        free(str);
+        return nullptr;
+    }
+    str[*len] = '\0';
+    return str;
+}
+
+/**
+ * Creates a Java string from standard UTF-8. Unlike NewStringUTF, which expects
+ * Modified UTF-8, this handles 4-byte sequences such as emoji.
+ * Returns nullptr with a Java exception pending on failure.
+ */
+jstring ca_new_string_from_utf8(JNIEnv *env, const char *utf8, CFIndex len) {
+    CFStringRef cfString = CFStringCreateWithBytes(kCFAllocatorDefault,
+                                                   reinterpret_cast<const UInt8*>(utf8),
+                                                   len, kCFStringEncodingUTF8, false);
+    if (cfString == nullptr) {
+        throwIllegalArgumentExceptionIfError(env, -1, "Invalid UTF-8");
+        return nullptr;
+    }
+    const CFIndex length = CFStringGetLength(cfString);
+    UniChar *chars = new UniChar[length > 0 ? length : 1];
+    CFStringGetCharacters(cfString, CFRangeMake(0, length), chars);
+    jstring result = env->NewString(reinterpret_cast<const jchar*>(chars), static_cast<jsize>(length));
+    delete[] chars;
+    CFRelease(cfString);
+    return result;
 }

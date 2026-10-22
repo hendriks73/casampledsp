@@ -1,19 +1,30 @@
+---
 name: Deploy
 
 on:
   push:
     branches:
       - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
   workflow_dispatch:
 
 jobs:
-  build:
-
+  macos-build:
     runs-on: macos-latest
+    permissions:
+      pages: write
+      id-token: write
 
     steps:
-      - id: install-secret-keys
-        name: Install secret keys
+      - name: Set up Doxygen
+        run: brew install doxygen
+
+      - id: install-secret-key
+        name: Install gpg secret key
         run: |
           cat <(echo -e "${{ secrets.OSSRH_GPG_SECRET_KEY }}") | gpg --batch --import
           gpg --list-secret-keys --keyid-format LONG
@@ -24,55 +35,81 @@ jobs:
           security import certificate.p12 -k build.keychain -P "${{ secrets.MACOS_CERTIFICATE_PWD }}" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k my_secret build.keychain
 
-      - uses: actions/checkout@v4
-
-      - name: Install Doxygen
-        run: brew install doxygen
+      - uses: actions/checkout@v6
 
       - name: Set up publication to Maven Central
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
-          distribution: 'zulu'
           java-version: '8'
-          architecture: x64
-          server-id: ossrh
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
+          architecture: arm64
+          server-id: central
+          server-username: SONATYPE_USERNAME
+          server-password: SONATYPE_PASSWORD
+          distribution: zulu
+          cache: maven
 
       - id: publish-to-central
         name: Publish to Central Repository
         env:
           MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
           MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-          GPG_TTY: $(tty)
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }}
         run: |
           mvn \
             --no-transfer-progress \
             --batch-mode \
-            -Dgpg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} \
+            -Dcentral.autoPublish=${{ github.ref == 'refs/heads/main' && 'true' || 'false' }} \
             -P release \
             clean deploy --file pom.xml
 
-      - id: deploy-site
-        name: Setup deployment to tagtraum site
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '8'
-          architecture: x64
-          server-id: tagtraum-site
-          server-username: MAVEN_USERNAME
-          server-password: MAVEN_PASSWORD
-
-      - name: Deploy to tagtraum site
-        env:
-          MAVEN_USERNAME: ${{ secrets.SITE_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.SITE_TOKEN }}
+      - name: Generate Javadocs
+        if: github.ref == 'refs/heads/main'
         run: |
-          sed -i.bak 's@tagtraum-site</id>@tagtraum-site</id><configuration><StrictHostKeyChecking>no</StrictHostKeyChecking></configuration><filePermissions>775</filePermissions><directoryPermissions>775</directoryPermissions>@' $HOME/.m2/settings.xml
           mvn \
             --no-transfer-progress \
             --batch-mode \
-            clean site site:deploy --file pom.xml
+            --file pom.xml \
+            -pl casampledsp-complete \
+            javadoc:javadoc
+
+      - name: Upload Javadocs as Pages artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: casampledsp-complete/target/reports/apidocs/
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: actions/deploy-pages@v4
+
+      - name: Set up publication to tagtraum
+        uses: actions/setup-java@v5
+        with:
+          java-version: '8'
+          server-id: tagtraum-site
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          distribution: zulu
+          cache: maven
+
+      - name: Add tagtraum SSH host key
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -H ssh.strato.de >> ~/.ssh/known_hosts
+
+      - name: Publish to tagtraum
+        if: github.ref == 'refs/heads/main'
+        env:
+          MAVEN_USERNAME: ${{ secrets.TAGTRAUM_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.TAGTRAUM_PASSWORD }}
+        run: |
+          sed -i.bak 's@tagtraum-site</id>@tagtraum-site</id><filePermissions>775</filePermissions><directoryPermissions>775</directoryPermissions>@' $HOME/.m2/settings.xml
+          mvn \
+            --no-transfer-progress \
+            --batch-mode \
+            --file pom.xml \
+            clean install site:site site:deploy

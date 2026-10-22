@@ -1,6 +1,18 @@
+- 0.9.33
+  - Modernized C++ code.
+  - Support emojis in file paths.
+  - Simplified `CAAudioFileReader.fileToURL()`; it now relies on standard URI encoding.
+  - Fixed garbled emoji in `AudioFileFormat` URLs and `FileNotFoundException` messages.
+  - Fixed `AudioFileFormat.getByteLength()` for paths with spaces or non-ASCII characters.
+  - Big-endian `PCM_FLOAT` target formats are now honoured.
+  - `getAudioInputStream(URL, int)` now uses the given buffer size for files, too.
+  - Empty streams now cause an `UnsupportedAudioFileException` instead of a native out-of-bounds read.
+  - Fixed native memory leak when `CACodecInputStream` rejects a target format.
+
+
 - 0.9.32
   - Updated several GH actions.
-  - Fixed packet count for `CACodecInputStream` for macOS 15/Sequioa
+  - Fixed packet count for `CACodecInputStream` for macOS 15/Sequioa.
 
  
 - 0.9.31
@@ -14,7 +26,7 @@
 
 - 0.9.29
 
-  - Added signature for native macOS libs
+  - Added signature for native macOS libs.
 
 
 - 0.9.27
