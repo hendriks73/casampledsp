@@ -264,7 +264,46 @@ public class TestCAAudioFileReader {
   public void testFileWithPunctuationToURL() throws MalformedURLException {
     final File file = new File("/someDir/;:&=+@[]?/name.txt");
     final URL url = CAAudioFileReader.fileToURL(file);
-    assertEquals("file:/someDir/%3B%3A%26%3D%2B%40%5B%5D%3F/name.txt", url.toString());
+    assertEquals("file:/someDir/;:&=+@%5B%5D%3F/name.txt", url.toString());
+  }
+
+  @Test
+  public void testGetAudioFileFormatFileWithSubDelimiters()
+      throws IOException, UnsupportedAudioFileException {
+    // Verifies that getAudioFileFormat(File) works when the file name contains RFC 3986
+    // sub-delimiter characters that file.toURI() leaves unencoded in the URL.
+    final String filename = "test.mp3";
+    final File file = File.createTempFile("testFormat;A&B+C=D", filename);
+    extractFile(filename, file);
+    try {
+      final AudioFileFormat fileFormat = new CAAudioFileReader().getAudioFileFormat(file);
+      assertEquals("mp3", fileFormat.getType().getExtension());
+      assertEquals(2, fileFormat.getFormat().getChannels());
+    } finally {
+      file.delete();
+    }
+  }
+
+  @Test
+  public void testGetAudioInputStreamFileWithSubDelimiters()
+      throws IOException, UnsupportedAudioFileException {
+    // Verifies that getAudioInputStream(File) can open and read a file whose name contains
+    // RFC 3986 sub-delimiter characters left unencoded by file.toURI().
+    final String filename = "test.mp3";
+    final File file = File.createTempFile("testStream;A&B+C=D", filename);
+    extractFile(filename, file);
+    try {
+      final AudioInputStream stream = new CAAudioFileReader().getAudioInputStream(file);
+      try {
+        final byte[] buf = new byte[1024];
+        assertTrue(
+            "Expected to read audio bytes from sub-delimiter-named file", stream.read(buf) > 0);
+      } finally {
+        stream.close();
+      }
+    } finally {
+      file.delete();
+    }
   }
 
   @Test
@@ -327,6 +366,58 @@ public class TestCAAudioFileReader {
     assertTrue(
         "Decoded path must contain original file name: " + url,
         url.getFile().contains("test") && url.getFile().contains("name.mp3"));
+  }
+
+  @Test
+  public void testFileWithPercentToURL() throws MalformedURLException {
+    // fileToURL() must encode a literal % in the path as %25 so that the native
+    // CFURLGetFileSystemRepresentation round-trip decodes back to the original character.
+    Assume.assumeTrue(File.separator.equals("/"));
+    final File file = new File("/someDir/50%Off/name.mp3");
+    final URL url = CAAudioFileReader.fileToURL(file);
+    assertTrue("URL must encode % as %25: " + url, url.toString().contains("%25"));
+    assertFalse(
+        "URL must not contain a bare % after removing valid percent-sequences: " + url,
+        url.toString().replaceAll("%[0-9A-Fa-f]{2}", "").contains("%"));
+  }
+
+  @Test
+  public void testGetAudioFileFormatFileWithPercent()
+      throws IOException, UnsupportedAudioFileException {
+    // Tests that getAudioFileFormat(File) handles a literal % in the file name.
+    // file.toURI().toASCIIString() encodes % as %25; CFURLGetFileSystemRepresentation
+    // decodes it back so Core Audio can open the file.
+    final String filename = "test.mp3";
+    final File file = File.createTempFile("testGetAudioFileFormat50%Off", filename);
+    extractFile(filename, file);
+    try {
+      final AudioFileFormat fileFormat = new CAAudioFileReader().getAudioFileFormat(file);
+      assertEquals("mp3", fileFormat.getType().getExtension());
+      assertEquals(2, fileFormat.getFormat().getChannels());
+    } finally {
+      file.delete();
+    }
+  }
+
+  @Test
+  public void testGetAudioInputStreamFileWithPercent()
+      throws IOException, UnsupportedAudioFileException {
+    // Tests that getAudioInputStream(File) can open and read a file whose name contains %.
+    // Exercises the CAURLInputStream JNI open() call with a %-encoded URL.
+    final String filename = "test.mp3";
+    final File file = File.createTempFile("testGetAudioInputStream50%Off", filename);
+    extractFile(filename, file);
+    try {
+      final AudioInputStream stream = new CAAudioFileReader().getAudioInputStream(file);
+      try {
+        final byte[] buf = new byte[1024];
+        assertTrue("Expected to read audio bytes from %-named file", stream.read(buf) > 0);
+      } finally {
+        stream.close();
+      }
+    } finally {
+      file.delete();
+    }
   }
 
   private void extractFile(final String filename, final File file) throws IOException {

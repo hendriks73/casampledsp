@@ -24,7 +24,6 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -124,45 +123,7 @@ public class CAAudioFileReader extends AudioFileReader {
    * @throws MalformedURLException if the URL is malformed
    */
   static URL fileToURL(final File file) throws MalformedURLException {
-    /*
-    punct: ",;:$&+="
-    reserved "?/[]@"
-    */
-
-    try {
-      final String url = file.toURI().toASCIIString();
-      final StringBuilder finalURL = new StringBuilder(url.length());
-      boolean firstColon = true;
-      for (final char c : url.toCharArray()) {
-        switch (c) {
-          case ':':
-            if (firstColon) {
-              firstColon = false;
-              finalURL.append(c);
-              continue;
-            }
-          case ',':
-          case ';':
-          case '$':
-          case '&':
-          case '+':
-          case '=':
-          case '?':
-          case '[':
-          case ']':
-          case '@':
-            finalURL.append(URLEncoder.encode(String.valueOf(c), "UTF-8"));
-            break;
-          default:
-            finalURL.append(c);
-        }
-      }
-      return new URL(finalURL.toString());
-    } catch (UnsupportedEncodingException e) {
-      final MalformedURLException malformedURLException = new MalformedURLException();
-      malformedURLException.initCause(e);
-      throw malformedURLException;
-    }
+    return new URL(file.toURI().toASCIIString());
   }
 
   @Override
