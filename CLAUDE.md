@@ -24,8 +24,9 @@ mvn -pl casampledsp-java clean install
 # Apply Google Java Format before committing Java changes
 mvn spotless:apply
 
-# Generate site documentation (requires Doxygen)
-mvn clean site
+# Generate site documentation incl. C-Docs (requires Doxygen and a prior install for the JNI headers)
+# Use the site phase, not just the site:site goal, or the Doxygen execution is skipped
+mvn site
 
 # Release build (GPG signing + code signing required)
 mvn -P release clean deploy

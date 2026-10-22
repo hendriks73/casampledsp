@@ -9,6 +9,7 @@
   - Empty streams now cause an `UnsupportedAudioFileException` instead of a native out-of-bounds read.
   - Fixed native memory leak when `CACodecInputStream` rejects a target format.
   - Fixed possible JVM crash when several threads decode concurrently right after the native library is loaded.
+  - C-Docs (Doxygen) are generated again when publishing the site; Doxygen is no longer needed for regular builds.
 
 
 - 0.9.32
