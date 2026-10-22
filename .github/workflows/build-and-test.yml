@@ -25,9 +25,6 @@ jobs:
         java: ['8', '11', '17', '21']
 
     steps:
-      - name: Set up Doxygen
-        run: brew install doxygen
-
       - uses: actions/checkout@v6
 
       - name: Set up Java

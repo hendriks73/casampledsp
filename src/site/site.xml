@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project name="CASampledSP">
+<project name="CASampledSP"
+    xmlns="http://maven.apache.org/DECORATION/2.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/DECORATION/2.0.0 http://maven.apache.org/xsd/decoration-2.0.0.xsd">
     <skin>
         <groupId>org.apache.maven.skins</groupId>
         <artifactId>maven-fluido-skin</artifactId>
-        <version>1.12.0</version>
+        <version>2.1.0</version>
     </skin>
     <custom>
         <fluidoSkin>
@@ -15,7 +18,6 @@
         </fluidoSkin>
     </custom>
     <version position="right"/>
-    <googleAnalyticsAccountId>UA-7561371-2</googleAnalyticsAccountId>
     <bannerLeft>
         <name>CASampledSP</name>
         <href>https://www.tagtraum.com/casampledsp</href>
